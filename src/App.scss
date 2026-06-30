@@ -1,0 +1,690 @@
+/* Reset and Default Styles */
+@import "./styles/variables.scss";
+@import "./styles/fonts.scss";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Ant Design Sider Override */
+.ant-layout-sider {
+  border-right: none !important;
+}
+
+.ant-menu {
+  border-right: none !important;
+}
+
+/* Hyperlinks Styling */
+a {
+  color: #36882f !important;
+  text-decoration: underline !important;
+}
+
+a:hover {
+  color: #4a8535 !important;
+}
+
+/* Delete Icon Styling */
+.delete-icon-hover {
+  transition: color 0.2s ease !important;
+
+  &:hover {
+    color: #fc5961 !important;
+  }
+}
+
+body {
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Light Theme */
+html[data-theme="light"],
+html:not([data-theme]) {
+  --primary-color: #{$primary-color};
+  --secondary-color: #{$secondary-color};
+  --text-primary: #{$text-primary};
+  --text-secondary: #{$text-secondary};
+  --bg-color: #{$bg-light};
+  --header-bg: #{$bg-white};
+  --footer-bg: #{$bg-white};
+  --sidebar-bg: #{$bg-white};
+  --border-color: #{$border-color};
+  --hover-bg: #{$bg-light};
+  --placeholder-bg: #{$bg-light};
+}
+
+/* Dark Theme */
+html[data-theme="dark"] {
+  --primary-color: #{$primary-light};
+  --secondary-color: #{$secondary-light};
+  --text-primary: #ffffffd9;
+  --text-secondary: #ffffff73;
+  --bg-color: #141414;
+  --header-bg: #1f1f1f;
+  --footer-bg: #1f1f1f;
+  --sidebar-bg: #1f1f1f;
+  --border-color: #434343;
+  --hover-bg: #303030;
+  --placeholder-bg: #262626;
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color, $border-color);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--primary-color, $primary-color);
+  }
+}
+
+/* Global Utility Classes */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.p-16 {
+  padding: 16px;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+}
+
+.ant-menu-item-selected {
+  color: black !important;
+}
+
+.m-0 {
+  margin: 0px !important;
+}
+
+.text-bold {
+  font-weight: 600;
+}
+
+// Define the spacing scale
+$spacings: 4, 8, 12, 16, 24, 32;
+
+// Margin utilities
+@each $space in $spacings {
+  .m-#{$space} {
+    margin: #{$space}px !important;
+  }
+  .mt-#{$space} {
+    margin-top: #{$space}px !important;
+  }
+  .mb-#{$space} {
+    margin-bottom: #{$space}px !important;
+  }
+  .ml-#{$space} {
+    margin-left: #{$space}px !important;
+  }
+  .mr-#{$space} {
+    margin-right: #{$space}px !important;
+  }
+}
+
+// Padding utilities
+@each $space in $spacings {
+  .p-#{$space} {
+    padding: #{$space}px !important;
+  }
+  .pt-#{$space} {
+    padding-top: #{$space}px !important;
+  }
+  .pb-#{$space} {
+    padding-bottom: #{$space}px !important;
+  }
+  .pl-#{$space} {
+    padding-left: #{$space}px !important;
+  }
+  .pr-#{$space} {
+    padding-right: #{$space}px !important;
+  }
+}
+.small-input {
+  width: 100% !important;
+  max-width: 500px;
+}
+
+/* School Logos Styles */
+.school-logos-page {
+  .school-logos-section {
+    .upload-area {
+      border: 2px dashed #d9d9d9;
+      border-radius: 8px;
+      padding: 40px 24px;
+      text-align: center;
+      background-color: #fafafa;
+      margin-bottom: 32px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #40a9ff;
+        background-color: #f0f5ff;
+      }
+
+      .upload-text {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 16px;
+      }
+
+      .multiple-upload-btn {
+        font-weight: 600;
+        text-transform: uppercase;
+        height: 40px;
+        padding: 0 32px;
+        border: 2px solid #333;
+        color: #333;
+        background: white;
+        border-radius: 4px;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+
+        &:hover {
+          background: #333;
+          color: white;
+          border-color: #333;
+        }
+      }
+    }
+
+    .logos-grid {
+      margin-top: 24px;
+
+      .logo-item {
+        text-align: center;
+
+        .logo-image-wrapper {
+          position: relative;
+          border: 2px solid #e8e8e8;
+          border-radius: 8px;
+          overflow: hidden;
+          background: white;
+          padding: 8px;
+          transition: all 0.3s ease;
+
+          &:hover {
+            border-color: #40a9ff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+            .logo-remove-icon {
+              opacity: 1;
+            }
+          }
+
+          .logo-remove-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 24px;
+            color: #ff4d4f;
+            cursor: pointer;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: all;
+
+            &:hover {
+              transform: scale(1.1);
+              color: #cf1322;
+            }
+          }
+
+          .logo-image {
+            width: 100%;
+            height: 150px;
+            object-fit: contain;
+            display: block;
+          }
+        }
+
+        .logo-filename {
+          margin-top: 8px;
+          font-size: 12px;
+          color: #666;
+          text-align: center;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          padding: 0 4px;
+        }
+      }
+    }
+  }
+}
+
+/* Multi-select image tile styles */
+.image-tile.multi-select {
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.selected {
+    border: 2px solid #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  }
+
+  .image-tile-cover {
+    position: relative;
+  }
+
+  .image-tile-selected-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #1890ff;
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Responsive adjustments for school logos */
+@media (max-width: 768px) {
+  .school-logos-page {
+    .school-logos-section {
+      .upload-area {
+        padding: 24px 16px;
+
+        .upload-text {
+          font-size: 14px;
+        }
+
+        .multiple-upload-btn {
+          height: 36px;
+          padding: 0 24px;
+          font-size: 13px;
+        }
+      }
+
+      .logos-grid {
+        .logo-item {
+          .logo-image-wrapper {
+            .logo-image {
+              height: 120px;
+            }
+
+            .logo-remove-icon {
+              opacity: 1;
+              font-size: 20px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.textarea-editor .ql-container {
+  min-height: 400px;
+}
+
+.school-image-preview {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  display: block;
+  border-radius: 8px;
+  background: #f4f4f4;
+}
+
+.school-image-container {
+  cursor: pointer;
+  width: 104px;
+  height: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Ant Design Menu Customization - ZNode Style */
+.ant-menu {
+  background-color: #f5f7f7 !important;
+}
+
+.ant-menu-item {
+  color: #3c4145 !important;
+  padding: 10px 10px 10px 15px !important;
+  margin: 8px 12px !important;
+  transition: all 0.2s linear 0s !important;
+  text-transform: uppercase;
+  font-size: 14px;
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif;
+  border-radius: 4px !important;
+  width: calc(100% - 24px) !important;
+  background-color: transparent !important;
+  display: block;
+  float: left;
+
+  .ant-menu-title-content {
+    color: #3c4145 !important;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-family:
+      "Roboto Condensed",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      "Helvetica Neue",
+      sans-serif;
+    display: block;
+  }
+
+  &:hover {
+    background-color: #e8ecec !important;
+  }
+}
+
+.ant-menu-item-selected {
+  color: #3c4145 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 4px 8px -2px #cccccc !important;
+  border-radius: 0 !important;
+  margin: 8px 0 8px 12px !important;
+  padding-left: 15px !important;
+  width: calc(100% - 12px) !important;
+
+  .ant-menu-title-content {
+    color: #3c4145 !important;
+  }
+
+  &:hover {
+    background-color: #ffffff !important;
+  }
+}
+
+.ant-menu-submenu-title {
+  color: #3c4145 !important;
+  padding: 10px 10px 10px 15px !important;
+  margin: 8px 12px !important;
+  transition: all 0.2s linear 0s !important;
+  text-transform: uppercase;
+  font-size: 14px;
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif;
+  border-radius: 4px !important;
+  width: calc(100% - 24px) !important;
+  background-color: transparent !important;
+  display: block;
+  float: left;
+
+  &:hover {
+    background-color: #e8ecec !important;
+  }
+}
+
+/* Global Heading Styles */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* Ant Design Card */
+.ant-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+/* Ant Design Card Title */
+.ant-card-head {
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.ant-card-head-title {
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* Ant Design Typography */
+.ant-typography,
+.ant-typography p {
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* Ant Design Input & Form Labels */
+.ant-input,
+.ant-input-number,
+.ant-select-selector,
+.ant-picker,
+.ant-form-item-label > label {
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* Ant Design Button Text */
+.ant-btn {
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* Ant Design Table */
+.ant-table,
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* Table Header Background */
+.ant-table-thead > tr > th {
+  background-color: #f5f7f7 !important;
+}
+
+/* Ant Design Checkbox */
+.ant-checkbox-inner {
+  border-radius: 2px !important;
+}
+
+/* Ant Design Table Row Selection */
+.ant-table-tbody > tr.ant-table-row-selected > td {
+  background-color: #fafbfb !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background-color: #fafbfb !important;
+}
+
+/* Ant Design Table Pagination */
+.ant-table-pagination {
+  justify-content: flex-start !important;
+}
+
+/* Ant Design Modal */
+.ant-modal-header,
+.ant-modal-title {
+  font-family:
+    "Roboto Condensed",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.small-input {
+  width: 100% !important;
+  max-width: 500px;
+}
+
+/* Import Modal Styles */
+.import-modal-content {
+  padding: 8px 0;
+
+  .import-dragger {
+    margin: 16px 0;
+
+    .ant-upload-drag-icon {
+      font-size: 48px;
+      color: #1890ff;
+    }
+
+    .ant-upload-text {
+      font-size: 16px;
+      font-weight: 500;
+      margin: 16px 0 8px;
+    }
+
+    .ant-upload-hint {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  .file-info {
+    margin-top: 16px;
+    padding: 12px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+
+    span {
+      margin-right: 8px;
+    }
+  }
+}
+/* Required mark ant design override - Start */
+/* Reverses the direction of the label content (text and the required mark) */
+.ant-form-item-required {
+  flex-direction: row-reverse;
+  display: inline-flex; /* Ensures flex-direction works correctly */
+  align-items: center;
+}
+
+/* Adjusts the margin of the required mark (the ::before element) */
+.ant-form-item-required::before {
+  margin-right: 0; /* Remove default right margin */
+  margin-left: 4px; /* Add margin to the left (between label and mark) */
+  margin-top: -4px;
+}
+
+/* Hides the default colon (::after element) if present to keep it clean */
+.ant-form-item-required::after {
+  content: none;
+  display: none;
+}
+/* Required mark ant design override - End */
+
+.custom-link {
+  color: #36882f !important;
+  text-decoration: underline !important;
+  cursor: pointer;
+}

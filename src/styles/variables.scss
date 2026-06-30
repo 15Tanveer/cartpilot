@@ -1,0 +1,53 @@
+// ==========================================================
+// SINGLE SOURCE OF TRUTH - Color Variables
+// These colors are synced with src/config/theme.ts
+// Update theme.ts and these will automatically update
+// ==========================================================
+
+// Primary Colors (Green Theme) - MUST match theme.ts
+$primary-color: #5db043;
+$primary-light: #e0ffd1;
+$primary-dark: #4a8a35;
+
+// Secondary Colors (Dark Green) - MUST match theme.ts
+$secondary-color: #36882f;
+$secondary-light: #4da83f;
+$secondary-dark: #2a6620;
+
+// Neutral colors - MUST match theme.ts
+$text-primary: #262626;
+$text-secondary: #666666;
+$text-disabled: #999999;
+$border-color: #d9d9d9;
+$bg-light: #f5f5f5;
+$bg-white: #ffffff;
+
+// Semantic colors - MUST match theme.ts
+$error-color: #ff4d4f;
+$error-light: #fff1f0;
+$error-dark: #820014;
+
+$success-color: #52c41a;
+$success-light: #f6ffed;
+$success-dark: #274a17;
+
+$warning-color: #faad14;
+$warning-light: #fffbe6;
+$warning-dark: #ad6800;
+
+$info-color: #1890ff;
+$info-light: #e6f7ff;
+$info-dark: #003a8c;
+
+// Gradients
+$gradient-primary: linear-gradient(
+  135deg,
+  $primary-color 0%,
+  $secondary-color 100%
+);
+$gradient-success: linear-gradient(135deg, $success-color 0%, #45a049 100%);
+
+// ==========================================================
+// NOTE: Keep these in sync with lightTheme in theme.ts
+// Any color changes must be updated in BOTH files
+// ==========================================================

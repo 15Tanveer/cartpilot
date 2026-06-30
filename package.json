@@ -1,0 +1,70 @@
+{
+  "name": "cartpilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@ant-design/icons": "^6.1.0",
+    "@reduxjs/toolkit": "^2.11.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@tinymce/tinymce-react": "^6.3.0",
+    "@types/dompurify": "^3.2.0",
+    "@types/jest": "^27.5.2",
+    "antd": "^6.0.1",
+    "axios": "^1.13.2",
+    "dompurify": "^3.3.1",
+    "moment": "^2.30.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-quill-new": "^3.6.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.10.0",
+    "react-scripts": "^5.0.1",
+    "tinymce": "^8.6.0",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "cross-env CI=true GENERATE_SOURCEMAP=false react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "prepare": "husky",
+    "lint": "eslint ."
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@cspell/eslint-plugin": "^9.4.0",
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "8.47.0",
+    "@typescript-eslint/parser": "8.47.0",
+    "cross-env": "^10.1.0",
+    "cspell": "^9.4.0",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "husky": "^9.1.7",
+    "prettier": "^3.7.4",
+    "sass": "^1.69.5",
+    "sass-loader": "^16.0.6",
+    "typescript": "^4.9.5",
+    "typescript-eslint": "^8.48.1"
+  }
+}

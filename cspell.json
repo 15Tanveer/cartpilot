@@ -1,0 +1,29 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "antd",
+    "Cantarell",
+    "commitlint",
+    "cross-env",
+    "Fira",
+    "getbyusername",
+    "Neue",
+    "react",
+    "redux",
+    "schoolwithgender",
+    "schoolwithgrade",
+    "schoolwithprogram",
+    "Segoe",
+    "Sider",
+    "Skus",
+    "TTFB",
+    "typescript",
+    "Unassociate",
+    "Znode"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "build"
+  ]
+}

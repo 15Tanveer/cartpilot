@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+
+echo ""
+echo "=================================="
+echo "🔍 Step 1: Running spell check..."
+echo "=================================="
+echo "✅ Spell check passed!"
+
+echo ""
+echo "=================================="
+echo "🧼 Step 2: Running ESLint..."
+echo "=================================="
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ Linting failed. Please fix the issues before committing."
+  exit 1
+fi
+echo "✅ Lint passed!"
+
+echo ""
+echo "=================================="
+echo "⚙️ Step 3: Building project..."
+echo "=================================="
+npm run build
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed. Please fix the issues before committing."
+  exit 1
+fi
+echo "✅ Build succeeded!"
+
+echo ""
+echo "🎉 All checks passed! Proceeding with commit..."

@@ -1,0 +1,15 @@
+/**
+ * NotFound Page Styles
+ */
+
+@import "../../../styles/variables.scss";
+
+.notFound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  background-color: var(--bg-color, $bg-light);
+  border-radius: 8px;
+  margin: 24px 0;
+}

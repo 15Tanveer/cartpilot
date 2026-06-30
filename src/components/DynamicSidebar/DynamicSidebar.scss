@@ -1,0 +1,129 @@
+/**
+ * Sidebar Styles
+ * Collapsible sidebar with text that hides based on toggle
+ */
+
+@import "../../styles/variables.scss";
+
+.sider {
+  background-color: #F5F7F7;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-right: none !important;
+  
+  :global(.ant-layout-sider) {
+    border-right: none !important;
+  }
+  :global(.ant-menu-item-selected),
+  :global(.ant-menu-submenu-selected) :global(.ant-menu-submenu-title) {
+    color: #3c4145 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 4px 8px -2px #cccccc !important;
+    border-radius: 4px !important;
+
+    :global(.ant-menu-title-content) {
+      color: #3c4145 !important;
+    }
+  }
+
+  /* Ant Design Menu Overrides - Default State */
+  :global(.ant-menu-item),
+  :global(.ant-menu-submenu-title) {
+    color: #3c4145 !important;
+    padding: 10px 10px 10px 15px !important;
+    transition: all 0.2s linear 0s !important;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-family: "Roboto Condensed", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+    border-radius: 4px !important;
+    display: block;
+    float: left;
+
+    :global(.ant-menu-title-content) {
+      color: #3c4145 !important;
+      text-transform: uppercase;
+      font-size: 14px;
+      font-family: "Roboto Condensed", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+      display: block;
+    }
+
+    &:hover:not(:global(.ant-menu-item-selected)) {
+      background-color: #f9f9f9 !important;
+    }
+  }
+}
+
+/* School Header - Dynamic Display */
+.schoolHeader {
+  display: flex;
+  align-items: center;
+  padding: 8px 20px;
+  flex-shrink: 0;
+  border-inline-end: 1px solid rgba(5, 5, 5, 0.06);
+  color: #000;
+}
+
+.backButton {
+  flex-shrink: 0;
+  min-width: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+}
+
+.schoolNameText {
+  display: block;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, $text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+/* Logo Section */
+.logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-color, $primary-color);
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.logoText {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Drawer Content */
+.drawerContent {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  :global(.ant-menu) {
+    border-right: none;
+    background-color: transparent;
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .sider {
+    display: none;
+  }
+}
