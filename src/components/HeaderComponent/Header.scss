@@ -38,6 +38,12 @@
   flex: 0 0 auto;
 }
 
+.headerLogo {
+  height: 32px;
+  width: auto;
+  flex-shrink: 0;
+}
+
 .title {
   font-size: 18px;
   font-weight: 600;
