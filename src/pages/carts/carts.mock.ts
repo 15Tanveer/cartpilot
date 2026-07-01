@@ -11,7 +11,7 @@ export const MOCK_CARTS: ICart[] = [
     cartNumber: "CART-100245",
     userName: "Olivia Bennett",
     userId: "USR-3391",
-    email: "olivia.bennett@example.com",
+    email: "aniketnagpureofficial@gmail.com",
     status: "abandoned",
     itemCount: 3,
     cartTotal: 184.97,
@@ -28,7 +28,7 @@ export const MOCK_CARTS: ICart[] = [
     cartNumber: "CART-100246",
     userName: "Marcus Lee",
     userId: "USR-2208",
-    email: "marcus.lee@example.com",
+    email: "aniketnagpure28@gmail.com",
     status: "reminded",
     itemCount: 1,
     cartTotal: 129.0,
@@ -43,7 +43,7 @@ export const MOCK_CARTS: ICart[] = [
     cartNumber: "CART-100247",
     userName: "Priya Nair",
     userId: "USR-4417",
-    email: "priya.nair@example.com",
+    email: "gmatter07@gmail.com",
     status: "abandoned",
     itemCount: 5,
     cartTotal: 342.45,
@@ -61,7 +61,7 @@ export const MOCK_CARTS: ICart[] = [
     cartNumber: "CART-100248",
     userName: "Daniel Osei",
     userId: "USR-1175",
-    email: "daniel.osei@example.com",
+    email: "sanketraut6874@gmail.com",
     status: "recovered",
     itemCount: 2,
     cartTotal: 98.5,
@@ -77,7 +77,7 @@ export const MOCK_CARTS: ICart[] = [
     cartNumber: "CART-100249",
     userName: "Sofia Romano",
     userId: "USR-5092",
-    email: "sofia.romano@example.com",
+    email: "aniket.nagpure@amla.io",
     status: "abandoned",
     itemCount: 4,
     cartTotal: 271.96,
@@ -93,3 +93,6 @@ export const MOCK_CARTS: ICart[] = [
 
 export const getCartById = (id: string): ICart | undefined =>
   MOCK_CARTS.find((cart) => cart.id === id);
+
+export const getCartByUserId = (userId: string): ICart | undefined =>
+  MOCK_CARTS.find((cart) => cart.userId === userId);

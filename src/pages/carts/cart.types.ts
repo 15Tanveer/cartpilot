@@ -6,6 +6,10 @@ export interface ICartItem {
   name: string;
   quantity: number;
   unitPrice: number;
+  /** Product thumbnail URL used in the recovery email ({{this.product_image}}). */
+  image?: string;
+  /** Variant info such as size/color used in the recovery email ({{this.variant}}). */
+  variant?: string;
 }
 
 export interface ICart {

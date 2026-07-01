@@ -11,6 +11,9 @@ export interface EnvironmentConfig {
   debug: boolean;
   cdnUrl: string;
   allowedReferrerDomain: string;
+  emailjsServiceId: string;
+  emailjsTemplateId: string;
+  emailjsPublicKey: string;
 }
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -23,6 +26,9 @@ export const environmentConfig: EnvironmentConfig = {
   debug: isDevelopment,
   cdnUrl: process.env.REACT_APP_CDN_URL || "",
   allowedReferrerDomain: process.env.REACT_APP_ALLOWED_REFERRER_DOMAIN || "http://127.0.0.1:5500/",
+  emailjsServiceId: process.env.REACT_APP_EMAILJS_SERVICE_ID || "",
+  emailjsTemplateId: process.env.REACT_APP_EMAILJS_TEMPLATE_ID || "",
+  emailjsPublicKey: process.env.REACT_APP_EMAILJS_PUBLIC_KEY || "",
 };
 
 export default environmentConfig;

@@ -17,6 +17,9 @@ export enum ROUTES {
   //carts
   CARTS = "/carts",
   EDIT_CART = "/carts/edit/:id",
+
+  //checkout (customer-facing, reached from the recovery email)
+  CHECKOUT = "/checkout/:userId",
 }
 
 export const MENU_ITEMS = [
