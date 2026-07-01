@@ -29,6 +29,12 @@ httpApi.interceptors.request.use((config: any) => {
       Authorization: `Basic ${token}`,
     };
   }
+  config.headers = {
+    ...config.headers,
+    "Znode-PortalCode": process.env.REACT_APP_ZNODE_PORTAL_CODE,
+    "Znode-LocaleCode": process.env.REACT_APP_ZNODE_LOCALE_CODE,
+    "Znode-PublishState": process.env.REACT_APP_ZNODE_PUBLISH_STATE,
+  };
   config.validateStatus = () => {
     return true;
   };
