@@ -28,11 +28,13 @@ import {
   STATUS_COLORS,
   STATUS_LABELS,
 } from "./cart.utils";
+import { sendRecoveryEmail } from "../../services/recoveryEmailService";
 
 const ManageCart: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { message } = AntdApp.useApp();
+  const [sendingEmail, setSendingEmail] = React.useState(false);
 
   const cart = id ? getCartById(id) : undefined;
 
@@ -71,12 +73,29 @@ const ManageCart: React.FC = () => {
     },
   ];
 
+  const handleSendRecoveryEmail = async () => {
+    setSendingEmail(true);
+    try {
+      await sendRecoveryEmail(cart);
+      message.success(`Recovery email sent to ${cart.email}`);
+    } catch (error) {
+      message.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to send recovery email",
+      );
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const featureButtons = (
     <Space wrap>
       <Button
         type="primary"
         icon={<MailOutlined />}
-        onClick={() => message.success(`Recovery email sent to ${cart.email}`)}
+        loading={sendingEmail}
+        onClick={handleSendRecoveryEmail}
       >
         Send Recovery Email
       </Button>
