@@ -16,7 +16,6 @@ import dayjs from "dayjs";
 import {
   CART_FILTER_COLUMNS,
   IFilterCondition,
-  STATUS_VALUE_OPTIONS,
   getColumnType,
   getDefaultOperator,
   getOperatorsForType,
@@ -116,18 +115,6 @@ const FilterDialog: React.FC<IFilterDialogProps> = ({
 
   const renderValueInput = (filter: IFilterCondition, index: number) => {
     const type = getColumnType(filter.columnName);
-
-    if (type === "status") {
-      return (
-        <Select
-          placeholder="Select value"
-          value={filter.value || undefined}
-          onChange={(value) => handleFilterChange(index, "value", value)}
-          options={STATUS_VALUE_OPTIONS}
-          style={{ width: "100%" }}
-        />
-      );
-    }
 
     if (type === "number") {
       return (

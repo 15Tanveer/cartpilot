@@ -13,6 +13,27 @@ export const formatCartDate = (isoDate: string): string => {
   });
 };
 
+/**
+ * Whole days elapsed since the given ISO date, or NaN if the date is invalid.
+ * Shared by the Cart Age column and the Cart Age filter.
+ */
+export const cartAgeInDays = (isoDate: string): number => {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return NaN;
+  const diffMs = Date.now() - date.getTime();
+  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+};
+
+/**
+ * Returns how old a cart is as text, e.g. "Today", "1 day ago", "5 days ago".
+ */
+export const formatCartAge = (isoDate: string): string => {
+  const days = cartAgeInDays(isoDate);
+  if (Number.isNaN(days)) return "-";
+  if (days === 0) return "Today";
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+};
+
 /** Formats a number as a currency string, e.g. formatCurrency(184.97, "USD"). */
 export const formatCurrency = (amount: number, currency = "USD"): string =>
   new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amount);

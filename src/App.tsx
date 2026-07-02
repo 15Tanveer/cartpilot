@@ -12,7 +12,7 @@ import { appRoutes } from "./config/routes";
 import Login from "./pages/login/Login";
 import Checkout from "./pages/checkout/Checkout";
 import { getLightAntdTheme } from "./config/antdTheme";
-import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+// import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { ROUTES } from "./constants";
 import "./App.scss";
 
@@ -42,57 +42,57 @@ function App() {
   return (
     <ConfigProvider theme={antdTheme}>
       <AntdApp message={{ top: 80, maxCount: 3 }}>
-        <ProtectedRoute>
-          <Router>
-            <Suspense fallback={<FallbackLoader />}>
-              <Routes>
-                {/* Public Login Route - No MainLayout */}
-                <Route path={ROUTES.LOGIN} element={<Login />} />
-                {/* Public customer checkout reached from the recovery email */}
-                <Route path={ROUTES.CHECKOUT} element={<Checkout />} />
-                {/* navigate to abandoned carts on first load */}
-                <Route
-                  path="/"
-                  element={<Navigate to={ROUTES.CARTS} replace />}
-                />
+        {/* <ProtectedRoute> */}
+        <Router>
+          <Suspense fallback={<FallbackLoader />}>
+            <Routes>
+              {/* Public Login Route - No MainLayout */}
+              <Route path={ROUTES.LOGIN} element={<Login />} />
+              {/* Public customer checkout reached from the recovery email */}
+              <Route path={ROUTES.CHECKOUT} element={<Checkout />} />
+              {/* navigate to abandoned carts on first load */}
+              <Route
+                path="/"
+                element={<Navigate to={ROUTES.CARTS} replace />}
+              />
 
-                {/* Protected Routes with MainLayout - Wrapped with ProtectedRoute */}
-                {appRoutes.map((route, index) => {
-                  const Component = route.component;
-                  return (
-                    <Route
-                      key={index}
-                      path={route.path}
-                      element={
-                        <ProtectedRoute>
-                          <MainLayout>
-                            <Suspense fallback={<FallbackLoader />}>
-                              {route.isEdit ? (
-                                <Component isEdit={true} />
-                              ) : (
-                                <Component />
-                              )}
-                            </Suspense>
-                          </MainLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                  );
-                })}
+              {/* Protected Routes with MainLayout - Wrapped with ProtectedRoute */}
+              {appRoutes.map((route, index) => {
+                const Component = route.component;
+                return (
+                  <Route
+                    key={index}
+                    path={route.path}
+                    element={
+                      // <ProtectedRoute>
+                      <MainLayout>
+                        <Suspense fallback={<FallbackLoader />}>
+                          {route.isEdit ? (
+                            <Component isEdit={true} />
+                          ) : (
+                            <Component />
+                          )}
+                        </Suspense>
+                      </MainLayout>
+                      // </ProtectedRoute>
+                    }
+                  />
+                );
+              })}
 
-                {/* Not Found Route */}
-                <Route
-                  path="*"
-                  element={
-                    <MainLayout>
-                      <NotFound />
-                    </MainLayout>
-                  }
-                />
-              </Routes>
-            </Suspense>
-          </Router>
-        </ProtectedRoute>
+              {/* Not Found Route */}
+              <Route
+                path="*"
+                element={
+                  <MainLayout>
+                    <NotFound />
+                  </MainLayout>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </Router>
+        {/* </ProtectedRoute> */}
       </AntdApp>
     </ConfigProvider>
   );
