@@ -10,6 +10,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import MainLayout from "./layouts/MainLayout";
 import { appRoutes } from "./config/routes";
 import Login from "./pages/login/Login";
+import Checkout from "./pages/checkout/Checkout";
 import { getLightAntdTheme } from "./config/antdTheme";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { ROUTES } from "./constants";
@@ -47,6 +48,8 @@ function App() {
               <Routes>
                 {/* Public Login Route - No MainLayout */}
                 <Route path={ROUTES.LOGIN} element={<Login />} />
+                {/* Public customer checkout reached from the recovery email */}
+                <Route path={ROUTES.CHECKOUT} element={<Checkout />} />
                 {/* navigate to abandoned carts on first load */}
                 <Route
                   path="/"
