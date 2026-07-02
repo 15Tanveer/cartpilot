@@ -116,6 +116,13 @@ const CartList: React.FC = () => {
     return applyCartFilters(searched, filters);
   }, [carts, search, filters]);
 
+  // A cart can only be mailed if we know who to send to — it needs a user name,
+  // a user id and an email address.
+  const isCartSelectable = (cart: ICart) =>
+    Boolean(cart.userName?.trim()) &&
+    Boolean(cart.userId?.trim()) &&
+    Boolean(cart.email?.trim());
+
   // Track the selected cart objects (not just keys) so the promotion modal has
   // the full records — emails/names — even for rows not on the current page.
   const rowSelection: TableRowSelection<ICart> = {
@@ -124,6 +131,10 @@ const CartList: React.FC = () => {
       setSelectedRowKeys(keys);
       setSelectedCarts(rows);
     },
+    getCheckboxProps: (cart) => ({
+      disabled: !isCartSelectable(cart),
+      name: cart.cartNumber,
+    }),
   };
 
   const clearSelection = () => {

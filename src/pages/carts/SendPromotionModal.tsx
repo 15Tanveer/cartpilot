@@ -1,12 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   Steps,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  DatePicker,
   Button,
   Space,
   Table,
@@ -14,29 +9,24 @@ import {
   Tag,
   App as AntdApp,
 } from "antd";
-import { MailOutlined } from "@ant-design/icons";
+import { MailOutlined, PlusOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import type { TableRowSelection } from "antd/es/table/interface";
 import { ICart } from "./cart.types";
+import { IPromotion } from "./promotion.types";
+import {
+  getPromotionListApi,
+  extractPromotionListItems,
+  mapApiPromotionToIPromotion,
+} from "../../api/promotionApi";
+import environmentConfig from "../../config/environment";
+
+/** Admin console URL for creating/managing promotions. */
+const ADMIN_PROMOTION_URL = environmentConfig.adminUrl
+  ? `${environmentConfig.adminUrl.replace(/\/$/, "")}/Promotion/List`
+  : "";
 
 const { Text, Paragraph } = Typography;
-const { RangePicker } = DatePicker;
-
-/** Discount types supported by a promotion. */
-export type DiscountType = "percent_off_order";
-
-export const DISCOUNT_TYPE_OPTIONS: { label: string; value: DiscountType }[] = [
-  { label: "Percent off order", value: "percent_off_order" },
-];
-
-/** Values captured by the "Create Promotion" form (step 1). */
-export interface IPromotionForm {
-  code: string;
-  /** [start, end] from the AntD RangePicker (dayjs values). */
-  dateRange: [unknown, unknown];
-  discountType: DiscountType;
-  /** Percent off the order total (0–100). */
-  discountValue: number;
-}
 
 interface SendPromotionModalProps {
   open: boolean;
@@ -50,14 +40,27 @@ interface SendPromotionModalProps {
 /** Recipients missing an email address can't be mailed and are flagged in step 2. */
 const hasEmail = (cart: ICart) => Boolean(cart.email?.trim());
 
-/** A dayjs value from AntD's RangePicker exposes a format() method. */
-type DateLike = { format: (template: string) => string } | null | undefined;
+/** Formats an ISO date as "MMM D, YYYY", or "" when absent/invalid. */
+const formatPromoDate = (iso: string): string => {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 
-/** Renders the [start, end] range as "MMM D, YYYY – MMM D, YYYY". */
-const formatDateRange = (range: IPromotionForm["dateRange"]): string => {
-  const [start, end] = (range ?? []) as [DateLike, DateLike];
-  if (!start || !end) return "";
-  return `${start.format("MMM D, YYYY")} – ${end.format("MMM D, YYYY")}`;
+/** Renders a promotion's discount, e.g. "10% off" for percent-off promotions. */
+const formatDiscount = (promo: IPromotion): string => {
+  if (!promo.discountValue) return "—";
+  const value = Number.isInteger(promo.discountValue)
+    ? promo.discountValue
+    : Number(promo.discountValue.toFixed(2));
+  return /percent/i.test(promo.discountType)
+    ? `${value}% off`
+    : String(value);
 };
 
 const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
@@ -67,34 +70,66 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
   onSent,
 }) => {
   const { message } = AntdApp.useApp();
-  const [form] = Form.useForm<IPromotionForm>();
   const [current, setCurrent] = useState(0);
-  const [promotion, setPromotion] = useState<IPromotionForm | null>(null);
   const [sending, setSending] = useState(false);
+
+  // Promotion list (step 1) — fetched from GET /Promotion/List.
+  const [promotions, setPromotions] = useState<IPromotion[]>([]);
+  const [loadingPromotions, setLoadingPromotions] = useState(false);
+  const [selectedPromotionId, setSelectedPromotionId] = useState<string | null>(
+    null,
+  );
+
+  const promotion =
+    promotions.find((p) => p.id === selectedPromotionId) ?? null;
 
   const mailable = recipients.filter(hasEmail);
 
+  // Load promotions whenever the modal opens.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+
+    const loadPromotions = async () => {
+      setLoadingPromotions(true);
+      try {
+        const response = await getPromotionListApi();
+        if (cancelled) return;
+        const mapped = extractPromotionListItems(response).map(
+          mapApiPromotionToIPromotion,
+        );
+        setPromotions(mapped);
+      } catch {
+        if (!cancelled) message.error("Failed to load promotions.");
+      } finally {
+        if (!cancelled) setLoadingPromotions(false);
+      }
+    };
+
+    loadPromotions();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, message]);
+
   const resetAndClose = () => {
-    form.resetFields();
-    setPromotion(null);
+    setSelectedPromotionId(null);
     setCurrent(0);
     setSending(false);
     onClose();
   };
 
-  const goToReview = async () => {
-    try {
-      const values = await form.validateFields();
-      setPromotion(values);
-      setCurrent(1);
-    } catch {
-      // validateFields rejects on invalid input; AntD shows the field errors.
+  const goToReview = () => {
+    if (!selectedPromotionId) {
+      message.warning("Select a promotion to continue.");
+      return;
     }
+    setCurrent(1);
   };
 
-  // Skip the promotion form and send a plain email (no promotion attached).
+  // Skip the promotion list and send a plain email (no promotion attached).
   const skipToReview = () => {
-    setPromotion(null);
+    setSelectedPromotionId(null);
     setCurrent(1);
   };
 
@@ -113,7 +148,9 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
       }`;
       message.success(
         promotion
-          ? `Promotion "${promotion.code.toUpperCase()}" sent to ${recipientLabel}.`
+          ? `Promotion "${
+              promotion.code?.toUpperCase() || promotion.name
+            }" sent to ${recipientLabel}.`
           : `Email sent to ${recipientLabel}.`,
       );
       onSent?.();
@@ -141,66 +178,114 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
     { title: "Cart Number", dataIndex: "cartNumber", key: "cartNumber" },
   ];
 
-  const promotionForm = (
-    <Form
-      form={form}
-      layout="vertical"
-      initialValues={{ discountType: "percent_off_order" }}
-    >
-      <Form.Item
-        label="Promotion Code"
-        name="code"
-        rules={[{ required: true, message: "Enter a promotion code" }]}
+  const promotionColumns: ColumnsType<IPromotion> = [
+    {
+      title: "Code",
+      dataIndex: "code",
+      key: "code",
+      render: (code: string) => <Tag>{code?.toUpperCase() || "—"}</Tag>,
+    },
+    { title: "Name", dataIndex: "name", key: "name" },
+    {
+      title: "Discount",
+      key: "discount",
+      align: "right",
+      render: (_, record) => formatDiscount(record),
+    },
+    {
+      title: "Type",
+      dataIndex: "discountType",
+      key: "discountType",
+      render: (value: string) => value || "—",
+    },
+    {
+      title: "Validity",
+      key: "validity",
+      render: (_, record) => {
+        const start = formatPromoDate(record.startDate);
+        const end = formatPromoDate(record.endDate);
+        if (!start && !end) return "—";
+        return `${start || "—"} – ${end || "—"}`;
+      },
+    },
+    {
+      title: "Status",
+      dataIndex: "active",
+      key: "active",
+      align: "center",
+      render: (active: boolean) =>
+        active ? (
+          <Tag color="green">Active</Tag>
+        ) : (
+          <Tag color="default">Inactive</Tag>
+        ),
+    },
+  ];
+
+  // Single-select: the customer receives one promotion.
+  const promotionRowSelection: TableRowSelection<IPromotion> = {
+    type: "radio",
+    selectedRowKeys: selectedPromotionId ? [selectedPromotionId] : [],
+    onChange: (keys) => setSelectedPromotionId((keys[0] as string) ?? null),
+  };
+
+  const promotionList = (
+    <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+        }}
       >
-        <Input
-          placeholder="e.g. SUMMER20"
-          style={{ textTransform: "uppercase" }}
-        />
-      </Form.Item>
-
-      <Form.Item
-        label="Start & End Date"
-        name="dateRange"
-        rules={[{ required: true, message: "Select a start and end date" }]}
-      >
-        <RangePicker style={{ width: "100%" }} />
-      </Form.Item>
-
-      <Space size="middle" style={{ display: "flex" }} align="start">
-        <Form.Item
-          label="Discount Type"
-          name="discountType"
-          rules={[{ required: true, message: "Select a discount type" }]}
-          style={{ flex: 1 }}
-        >
-          <Select options={DISCOUNT_TYPE_OPTIONS} />
-        </Form.Item>
-
-        <Form.Item
-          label="Percent Off"
-          name="discountValue"
-          rules={[{ required: true, message: "Enter a percentage" }]}
-        >
-          <InputNumber
-            min={1}
-            max={100}
-            placeholder="20"
-            addonAfter="%"
-            style={{ width: 140 }}
-          />
-        </Form.Item>
-      </Space>
-    </Form>
+        <Text type="secondary">
+          Select a promotion to include in the email, or skip to send a plain
+          email.
+        </Text>
+        {ADMIN_PROMOTION_URL && (
+          <Button
+            icon={<PlusOutlined />}
+            href={ADMIN_PROMOTION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Create Promotion
+          </Button>
+        )}
+      </div>
+      <Table<IPromotion>
+        rowKey="id"
+        size="small"
+        loading={loadingPromotions}
+        rowSelection={promotionRowSelection}
+        columns={promotionColumns}
+        dataSource={promotions}
+        pagination={false}
+        scroll={{ y: 300 }}
+        onRow={(record) => ({
+          onClick: () => setSelectedPromotionId(record.id),
+          style: { cursor: "pointer" },
+        })}
+      />
+    </Space>
   );
 
   const reviewStep = (
     <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
       {promotion ? (
         <Paragraph style={{ marginBottom: 0 }}>
-          Code <Tag>{promotion.code?.toUpperCase()}</Tag> —{" "}
-          <Text strong>{promotion.discountValue}% off order</Text>
-          {formatDateRange(promotion.dateRange) && (
-            <Text type="secondary"> ({formatDateRange(promotion.dateRange)})</Text>
+          Code <Tag>{promotion.code?.toUpperCase() || "—"}</Tag> —{" "}
+          <Text strong>{formatDiscount(promotion)}</Text>
+          {promotion.discountType && (
+            <Text type="secondary"> ({promotion.discountType})</Text>
+          )}
+          {formatPromoDate(promotion.startDate) && (
+            <Text type="secondary">
+              {" "}
+              · valid {formatPromoDate(promotion.startDate)} –{" "}
+              {formatPromoDate(promotion.endDate) || "—"}
+            </Text>
           )}
         </Paragraph>
       ) : (
@@ -256,18 +341,18 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
       open={open}
       onCancel={resetAndClose}
       footer={footer}
-      width={720}
+      width={860}
       destroyOnHidden
     >
       <Steps
         current={current}
         style={{ marginBottom: 24 }}
         items={[
-          { title: "Create Promotion" },
+          { title: "Select Promotion" },
           { title: "Review & Send" },
         ]}
       />
-      {current === 0 ? promotionForm : reviewStep}
+      {current === 0 ? promotionList : reviewStep}
     </Modal>
   );
 };

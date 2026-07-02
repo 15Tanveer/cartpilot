@@ -5,6 +5,7 @@
 
 export interface EnvironmentConfig {
   apiUrl: string;
+  adminUrl: string;
   apiTimeout: number;
   appName: string;
   appVersion: string;
@@ -21,6 +22,7 @@ const isDevelopment = process.env.NODE_ENV === "development";
 
 export const environmentConfig: EnvironmentConfig = {
   apiUrl: process.env.REACT_APP_API_URL || "http://localhost:3001/api",
+  adminUrl: process.env.REACT_APP_ADMIN_URL || "",
   apiTimeout: parseInt(process.env.REACT_APP_API_TIMEOUT || "10000", 10),
   appName: process.env.REACT_APP_NAME || "Cartpilot",
   appVersion: process.env.REACT_APP_VERSION || "1.0.0",

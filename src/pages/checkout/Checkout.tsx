@@ -19,7 +19,7 @@ const { Title, Text, Paragraph } = Typography;
 
 /** Promo code surfaced in the recovery email and pre-applied here. */
 const DISCOUNT_CODE = "DISCOUNT10";
-const STORE_LOGO = `${window.location.origin}/header-admin-logo.png`;
+const STORE_LOGO = `${window.location.origin}/header-admin-logo.svg`;
 
 const pageStyle: React.CSSProperties = {
   display: "flex",
@@ -98,7 +98,10 @@ const Checkout: React.FC = () => {
                   }
                 />
                 <Text strong>
-                  {formatCurrency(item.unitPrice * item.quantity, cart.currency)}
+                  {formatCurrency(
+                    item.unitPrice * item.quantity,
+                    cart.currency,
+                  )}
                 </Text>
               </List.Item>
             )}
