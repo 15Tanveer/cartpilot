@@ -48,7 +48,13 @@ const CartList: React.FC = () => {
   const [managingId, setManagingId] = useState<string | null>(null);
 
   const openCart = (cart: ICart) => {
-    navigate(`/carts/edit/${cart.id}`);
+    // Hand the already-fetched cart over in router state so the manage page
+    // does not need to refetch the carts list to find it; the userId in the
+    // URL lets a refresh / direct link resolve the user + items on its own.
+    const query = cart.userId
+      ? `?userId=${encodeURIComponent(cart.userId)}`
+      : "";
+    navigate(`/carts/edit/${cart.id}${query}`, { state: { cart } });
   };
 
   // "Manage" action: resolve the portalId from the configured store code, fetch
@@ -65,7 +71,7 @@ const CartList: React.FC = () => {
       // page can re-run the portal + user chain itself; the router state keeps
       // this navigation fast by handing over the already-fetched detail.
       navigate(`/carts/edit/${cart.id}?userId=${encodeURIComponent(cart.userId)}`, {
-        state: { userDetail: response.User },
+        state: { cart, userDetail: response.User },
       });
     } catch {
       message.error("Failed to load user details. Please try again.");

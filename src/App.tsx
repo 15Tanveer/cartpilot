@@ -66,7 +66,9 @@ function App() {
                     element={
                       // <ProtectedRoute>
                       <MainLayout>
-                        <Suspense fallback={<FallbackLoader />}>
+                        {/* No fallback UI here: pages render their own
+                                layout-shaped skeletons as soon as they mount. */}
+                            <Suspense fallback={null}>
                           {route.isEdit ? (
                             <Component isEdit={true} />
                           ) : (

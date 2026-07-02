@@ -57,14 +57,38 @@ export interface ICartListApiResponse {
   CollectionDetails: ICartListApiRecord[];
 }
 
+// Product attribute entry inside an item's Attributes array; the entry with
+// AttributeCode "ProductImage" carries the thumbnail URL in AttributeValue.
+export interface ICartItemAttribute {
+  AttributeCode: string | null;
+  AttributeValue: string | null;
+  AttributeName: string | null;
+}
+
+// Child entry inside ChildItemList (note the SKU casing differs from the
+// parent record's Sku).
+export interface ICartChildItemApiRecord {
+  ItemId: string;
+  SKU: string | null;
+  ProductName: string | null;
+  Quantity: number;
+  UnitPrice: number;
+  Attributes?: ICartItemAttribute[] | null;
+  ChildItemList?: ICartChildItemApiRecord[] | null;
+}
+
 // Single line item returned in ItemList by
 // GET /commerceapi/v1/Carts/item-list/{cartNumber}.
+// For configurable/bundled products the parent record's UnitPrice is 0 and
+// the real prices are carried by the entries in ChildItemList.
 export interface ICartItemApiRecord {
   ItemId: string;
   Sku: string | null;
   ProductName: string | null;
   Quantity: number;
   UnitPrice: number;
+  Attributes?: ICartItemAttribute[] | null;
+  ChildItemList?: ICartChildItemApiRecord[] | null;
 }
 
 export interface ICartItemListApiResponse {

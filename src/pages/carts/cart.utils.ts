@@ -1,11 +1,14 @@
 import {
   CartStatus,
   ICart,
+  ICartChildItemApiRecord,
   ICartItem,
   ICartItemApiRecord,
+  ICartItemAttribute,
   ICartListApiRecord,
   ICartListApiResponse,
 } from "./cart.types";
+import { IUserDetail } from "../../api/userApi";
 
 /** Formats an ISO date string as e.g. "Jun 28, 2026, 2:32 PM". */
 export const formatCartDate = (isoDate: string): string => {
@@ -76,6 +79,44 @@ const mapStatusCode = (statusCode: string): CartStatus => {
   return "abandoned";
 };
 
+
+/**
+ * Resolves an item's unit price. Configurable/bundled products carry 0 on the
+ * parent record with the real prices on the ChildItemList entries, so when the
+ * parent price is 0 we sum the (recursively resolved) child unit prices.
+ */
+const resolveUnitPrice = (raw: {
+  UnitPrice: number;
+  ChildItemList?: ICartChildItemApiRecord[] | null;
+}): number => {
+  const own = Number(raw.UnitPrice ?? 0);
+  if (own) return own;
+  return (raw.ChildItemList || []).reduce(
+    (sum, child) => sum + resolveUnitPrice(child),
+    0,
+  );
+};
+
+/**
+ * Resolves an item's product image URL from the "ProductImage" entry of its
+ * Attributes, falling back to the first child item that carries one (the
+ * attributes usually live on the ChildItemList entries).
+ */
+const resolveProductImage = (raw: {
+  Attributes?: ICartItemAttribute[] | null;
+  ChildItemList?: ICartChildItemApiRecord[] | null;
+}): string | undefined => {
+  const own = (raw.Attributes || []).find(
+    (attribute) => attribute.AttributeCode === "ProductImage",
+  )?.AttributeValue;
+  if (own) return own;
+  for (const child of raw.ChildItemList || []) {
+    const childImage = resolveProductImage(child);
+    if (childImage) return childImage;
+  }
+  return undefined;
+};
+
 /** Maps a raw item-list API record to the ICartItem shape used by the UI. */
 export const mapApiItemToICartItem = (
   raw: ICartItemApiRecord,
@@ -84,7 +125,35 @@ export const mapApiItemToICartItem = (
   sku: raw.Sku || "",
   name: raw.ProductName || "",
   quantity: Number(raw.Quantity ?? 0),
-  unitPrice: Number(raw.UnitPrice ?? 0),
+  unitPrice: resolveUnitPrice(raw),
+  image: resolveProductImage(raw),
+});
+
+/**
+ * Builds an ICart for the Manage page out of the item-list response and the
+ * user detail, for when no list record is at hand (cold direct link/refresh
+ * without router state). Only the carts/list API carries status, modified
+ * date and currency, so those fall back to "abandoned" / "" / USD here.
+ */
+export const buildCartFromItems = (
+  cartNumber: string,
+  items: ICartItem[],
+  user: IUserDetail | null,
+): ICart => ({
+  id: cartNumber,
+  cartNumber,
+  userName: [user?.FirstName, user?.LastName].filter(Boolean).join(" "),
+  userId: user ? String(user.UserId) : "",
+  email: user?.Email || "",
+  status: "abandoned",
+  itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+  cartTotal: items.reduce(
+    (sum, item) => sum + item.unitPrice * item.quantity,
+    0,
+  ),
+  currency: "USD",
+  lastModifiedDate: "",
+  items,
 });
 
 /** Maps a raw carts/list API record to the ICart shape used by the UI. */
