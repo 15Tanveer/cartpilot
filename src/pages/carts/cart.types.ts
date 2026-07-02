@@ -56,3 +56,20 @@ export interface ICartListApiResponse {
   };
   CollectionDetails: ICartListApiRecord[];
 }
+
+// Single line item returned in ItemList by
+// GET /commerceapi/v1/Carts/item-list/{cartNumber}.
+export interface ICartItemApiRecord {
+  ItemId: string;
+  Sku: string | null;
+  ProductName: string | null;
+  Quantity: number;
+  UnitPrice: number;
+}
+
+export interface ICartItemListApiResponse {
+  ClassNumber?: string;
+  ItemList?: ICartItemApiRecord[];
+  HasError?: boolean;
+  ErrorMessage?: string | null;
+}
