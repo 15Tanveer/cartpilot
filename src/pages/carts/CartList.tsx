@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import ActionCard from "../../components/common/Card/ActionCard";
 import { ICart } from "./cart.types";
 import { getCartListApi } from "../../api/cartsApi";
+import { getUserDetailByStoreCode } from "../../api/userApi";
 import {
   extractCartListItems,
   extractCartListTotal,
@@ -34,9 +35,34 @@ const CartList: React.FC = () => {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<IFilterCondition[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  // Id of the cart whose user detail is currently being fetched (per-row spinner).
+  const [managingId, setManagingId] = useState<string | null>(null);
 
   const openCart = (cart: ICart) => {
     navigate(`/carts/edit/${cart.id}`);
+  };
+
+  // "Manage" action: resolve the portalId from the configured store code, fetch
+  // the user's detail, then open the manage page with that detail in tow.
+  const openManage = async (cart: ICart) => {
+    if (!cart.userId) {
+      openCart(cart);
+      return;
+    }
+    setManagingId(cart.id);
+    try {
+      const response = await getUserDetailByStoreCode(cart.userId);
+      // Carry the userId in the URL so a refresh / direct link on the manage
+      // page can re-run the portal + user chain itself; the router state keeps
+      // this navigation fast by handing over the already-fetched detail.
+      navigate(`/carts/edit/${cart.id}?userId=${encodeURIComponent(cart.userId)}`, {
+        state: { userDetail: response.User },
+      });
+    } catch {
+      message.error("Failed to load user details. Please try again.");
+    } finally {
+      setManagingId(null);
+    }
   };
 
   useEffect(() => {
@@ -137,7 +163,11 @@ const CartList: React.FC = () => {
         <Button
           type="text"
           icon={<EditOutlined />}
-          onClick={() => openCart(record)}
+          loading={managingId === record.id}
+          onClick={(e) => {
+            e.stopPropagation();
+            openManage(record);
+          }}
         >
           Manage
         </Button>

@@ -1,4 +1,11 @@
-import { CartStatus, ICart, ICartListApiRecord, ICartListApiResponse } from "./cart.types";
+import {
+  CartStatus,
+  ICart,
+  ICartItem,
+  ICartItemApiRecord,
+  ICartListApiRecord,
+  ICartListApiResponse,
+} from "./cart.types";
 
 /** Formats an ISO date string as e.g. "Jun 28, 2026, 2:32 PM". */
 export const formatCartDate = (isoDate: string): string => {
@@ -47,6 +54,17 @@ const mapStatusCode = (statusCode: string): CartStatus => {
   if (code === "REMINDED") return "reminded";
   return "abandoned";
 };
+
+/** Maps a raw item-list API record to the ICartItem shape used by the UI. */
+export const mapApiItemToICartItem = (
+  raw: ICartItemApiRecord,
+): ICartItem => ({
+  id: raw.ItemId,
+  sku: raw.Sku || "",
+  name: raw.ProductName || "",
+  quantity: Number(raw.Quantity ?? 0),
+  unitPrice: Number(raw.UnitPrice ?? 0),
+});
 
 /** Maps a raw carts/list API record to the ICart shape used by the UI. */
 export const mapApiCartToICart = (raw: ICartListApiRecord): ICart => ({
