@@ -6,7 +6,7 @@ import {
   Space,
   Button,
   Empty,
-  Spin,
+  Skeleton,
   App as AntdApp,
   Divider,
 } from "antd";
@@ -150,7 +150,7 @@ const ManageCart: React.FC = () => {
     return (
       <ActionCard title="Manage Cart" backBtnHandler={handleBack} hideBackBtn={false} saveBtnHandler={handleBack} saveBtnText="Close">
         {loadingCart ? (
-          <Spin />
+          <Skeleton active paragraph={{ rows: 6 }} />
         ) : (
           <Empty description="Cart not found" />
         )}
@@ -322,11 +322,13 @@ const ManageCart: React.FC = () => {
 
         <div>
           <Divider titlePlacement="left">Cart Items</Divider>
+          {loadingItems ? (
+            <Skeleton active title={false} paragraph={{ rows: 5 }} />
+          ) : (
           <Table<ICartItem>
             rowKey="id"
             columns={itemColumns}
             dataSource={items.length ? items : cart.items}
-            loading={loadingItems}
             pagination={false}
             summary={(rows) => {
               const total = rows.reduce(
@@ -345,6 +347,7 @@ const ManageCart: React.FC = () => {
               );
             }}
           />
+          )}
         </div>
       </Space>
     </ActionCard>
