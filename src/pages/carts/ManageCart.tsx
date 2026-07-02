@@ -65,7 +65,7 @@ const ManageCart: React.FC = () => {
   const [userDetail, setUserDetail] = React.useState<IUserDetail | null>(
     stateUserDetail ?? null,
   );
-  const [loadingUser, setLoadingUser] = React.useState(false);
+  const [ , setLoadingUser] = React.useState(false);
 
   const [items, setItems] = React.useState<ICartItem[]>([]);
   const [loadingItems, setLoadingItems] = React.useState(false);
@@ -262,9 +262,9 @@ const ManageCart: React.FC = () => {
           <Descriptions.Item label="Cart Number">
             {cart.cartNumber}
           </Descriptions.Item>
-          <Descriptions.Item label="User Name">
+          {/* <Descriptions.Item label="User Name">
             {cart.userName}
-          </Descriptions.Item>
+          </Descriptions.Item> */}
           <Descriptions.Item label="User ID">{cart.userId}</Descriptions.Item>
           <Descriptions.Item label="Email">{cart.email}</Descriptions.Item>
           <Descriptions.Item label="Status">
@@ -281,7 +281,7 @@ const ManageCart: React.FC = () => {
           </Descriptions.Item>
         </Descriptions>
 
-        {(userDetail || loadingUser) && (
+        {/* {(userDetail || loadingUser) && (
           <div>
             <Divider titlePlacement="left">Customer Account</Divider>
             {loadingUser && !userDetail ? (
@@ -313,7 +313,7 @@ const ManageCart: React.FC = () => {
             </Descriptions>
             ) : null}
           </div>
-        )}
+        )} */}
 
         <div>
           <Divider titlePlacement="left">Actions</Divider>
