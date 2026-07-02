@@ -1,4 +1,11 @@
-import { CartStatus, ICart, ICartListApiRecord, ICartListApiResponse } from "./cart.types";
+import {
+  CartStatus,
+  ICart,
+  ICartItem,
+  ICartItemApiRecord,
+  ICartListApiRecord,
+  ICartListApiResponse,
+} from "./cart.types";
 
 /** Formats an ISO date string as e.g. "Jun 28, 2026, 2:32 PM". */
 export const formatCartDate = (isoDate: string): string => {
@@ -11,6 +18,27 @@ export const formatCartDate = (isoDate: string): string => {
     hour: "numeric",
     minute: "2-digit",
   });
+};
+
+/**
+ * Whole days elapsed since the given ISO date, or NaN if the date is invalid.
+ * Shared by the Cart Age column and the Cart Age filter.
+ */
+export const cartAgeInDays = (isoDate: string): number => {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return NaN;
+  const diffMs = Date.now() - date.getTime();
+  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+};
+
+/**
+ * Returns how old a cart is as text, e.g. "Today", "1 day ago", "5 days ago".
+ */
+export const formatCartAge = (isoDate: string): string => {
+  const days = cartAgeInDays(isoDate);
+  if (Number.isNaN(days)) return "-";
+  if (days === 0) return "Today";
+  return `${days} day${days === 1 ? "" : "s"} ago`;
 };
 
 /** Formats a number as a currency string, e.g. formatCurrency(184.97, "USD"). */
@@ -47,6 +75,17 @@ const mapStatusCode = (statusCode: string): CartStatus => {
   if (code === "REMINDED") return "reminded";
   return "abandoned";
 };
+
+/** Maps a raw item-list API record to the ICartItem shape used by the UI. */
+export const mapApiItemToICartItem = (
+  raw: ICartItemApiRecord,
+): ICartItem => ({
+  id: raw.ItemId,
+  sku: raw.Sku || "",
+  name: raw.ProductName || "",
+  quantity: Number(raw.Quantity ?? 0),
+  unitPrice: Number(raw.UnitPrice ?? 0),
+});
 
 /** Maps a raw carts/list API record to the ICart shape used by the UI. */
 export const mapApiCartToICart = (raw: ICartListApiRecord): ICart => ({

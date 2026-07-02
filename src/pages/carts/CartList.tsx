@@ -1,21 +1,28 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Table, Tag, Input, Space, Button, Badge, App as AntdApp } from "antd";
-import { EditOutlined, SearchOutlined, FilterOutlined } from "@ant-design/icons";
+import { Table, Input, Space, Button, Badge, App as AntdApp } from "antd";
+import {
+  EditOutlined,
+  SearchOutlined,
+  FilterOutlined,
+  MailOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import type { TableRowSelection } from "antd/es/table/interface";
 import { useNavigate } from "react-router-dom";
 import ActionCard from "../../components/common/Card/ActionCard";
 import { ICart } from "./cart.types";
 import { getCartListApi } from "../../api/cartsApi";
+import { getUserDetailByStoreCode } from "../../api/userApi";
 import {
   extractCartListItems,
   extractCartListTotal,
+  formatCartAge,
   formatCartDate,
   formatCurrency,
-  STATUS_COLORS,
-  STATUS_LABELS,
   mapApiCartToICart,
 } from "./cart.utils";
 import FilterDialog from "./FilterDialog";
+import SendPromotionModal from "./SendPromotionModal";
 import { IFilterCondition, applyCartFilters } from "./cart.filters";
 
 const DEFAULT_PAGE_SIZE = 50;
@@ -34,9 +41,37 @@ const CartList: React.FC = () => {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<IFilterCondition[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedCarts, setSelectedCarts] = useState<ICart[]>([]);
+  const [promotionOpen, setPromotionOpen] = useState(false);
+  // Id of the cart whose user detail is currently being fetched (per-row spinner).
+  const [managingId, setManagingId] = useState<string | null>(null);
 
   const openCart = (cart: ICart) => {
     navigate(`/carts/edit/${cart.id}`);
+  };
+
+  // "Manage" action: resolve the portalId from the configured store code, fetch
+  // the user's detail, then open the manage page with that detail in tow.
+  const openManage = async (cart: ICart) => {
+    if (!cart.userId) {
+      openCart(cart);
+      return;
+    }
+    setManagingId(cart.id);
+    try {
+      const response = await getUserDetailByStoreCode(cart.userId);
+      // Carry the userId in the URL so a refresh / direct link on the manage
+      // page can re-run the portal + user chain itself; the router state keeps
+      // this navigation fast by handing over the already-fetched detail.
+      navigate(`/carts/edit/${cart.id}?userId=${encodeURIComponent(cart.userId)}`, {
+        state: { userDetail: response.User },
+      });
+    } catch {
+      message.error("Failed to load user details. Please try again.");
+    } finally {
+      setManagingId(null);
+    }
   };
 
   useEffect(() => {
@@ -81,6 +116,32 @@ const CartList: React.FC = () => {
     return applyCartFilters(searched, filters);
   }, [carts, search, filters]);
 
+  // A cart can only be mailed if we know who to send to — it needs a user name,
+  // a user id and an email address.
+  const isCartSelectable = (cart: ICart) =>
+    Boolean(cart.userName?.trim()) &&
+    Boolean(cart.userId?.trim()) &&
+    Boolean(cart.email?.trim());
+
+  // Track the selected cart objects (not just keys) so the promotion modal has
+  // the full records — emails/names — even for rows not on the current page.
+  const rowSelection: TableRowSelection<ICart> = {
+    selectedRowKeys,
+    onChange: (keys, rows) => {
+      setSelectedRowKeys(keys);
+      setSelectedCarts(rows);
+    },
+    getCheckboxProps: (cart) => ({
+      disabled: !isCartSelectable(cart),
+      name: cart.cartNumber,
+    }),
+  };
+
+  const clearSelection = () => {
+    setSelectedRowKeys([]);
+    setSelectedCarts([]);
+  };
+
   const columns: ColumnsType<ICart> = [
     {
       title: "Cart Number",
@@ -116,12 +177,14 @@ const CartList: React.FC = () => {
       render: (value: number, record) => formatCurrency(value, record.currency),
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status: ICart["status"]) => (
-        <Tag color={STATUS_COLORS[status]}>{STATUS_LABELS[status]}</Tag>
-      ),
+      title: "Cart Age",
+      dataIndex: "lastModifiedDate",
+      key: "cartAge",
+      align: "center",
+      sorter: (a, b) =>
+        new Date(a.lastModifiedDate).getTime() -
+        new Date(b.lastModifiedDate).getTime(),
+      render: (value: string) => formatCartAge(value),
     },
     {
       title: "Last Modified",
@@ -137,7 +200,11 @@ const CartList: React.FC = () => {
         <Button
           type="text"
           icon={<EditOutlined />}
-          onClick={() => openCart(record)}
+          loading={managingId === record.id}
+          onClick={(e) => {
+            e.stopPropagation();
+            openManage(record);
+          }}
         >
           Manage
         </Button>
@@ -147,6 +214,15 @@ const CartList: React.FC = () => {
 
   const filterSection = (
     <Space wrap>
+      {selectedRowKeys.length > 0 && (
+        <Button
+          type="primary"
+          icon={<MailOutlined />}
+          onClick={() => setPromotionOpen(true)}
+        >
+          Send Mail ({selectedRowKeys.length})
+        </Button>
+      )}
       <Input
         allowClear
         placeholder="Search this page"
@@ -172,6 +248,7 @@ const CartList: React.FC = () => {
       <Space orientation="vertical" style={{ width: "100%" }} size="large">
         <Table<ICart>
           rowKey="id"
+          rowSelection={rowSelection}
           columns={columns}
           dataSource={visibleCarts}
           loading={loading}
@@ -199,6 +276,13 @@ const CartList: React.FC = () => {
         onClose={() => setFilterOpen(false)}
         onApply={setFilters}
         initialFilters={filters}
+      />
+
+      <SendPromotionModal
+        open={promotionOpen}
+        recipients={selectedCarts}
+        onClose={() => setPromotionOpen(false)}
+        onSent={clearSelection}
       />
     </ActionCard>
   );

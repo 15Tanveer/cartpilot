@@ -34,7 +34,6 @@ const Header: React.FC<HeaderProps> = ({
             />
           )}
 
-          <img src="/header-admin-logo.png" alt={APP_NAME} className="headerLogo" />
           <span className="title">{APP_NAME}</span>
         </div>
       </div>

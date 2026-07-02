@@ -1,11 +1,17 @@
 import { ICart } from "./cart.types";
-import { STATUS_LABELS } from "./cart.utils";
+import { cartAgeInDays } from "./cart.utils";
 
-export type FilterFieldType = "text" | "number" | "status" | "date";
+export type FilterFieldType = "text" | "number" | "date";
+
+/**
+ * Filterable fields. These are keys of ICart plus "cartAge", a derived value
+ * (whole days since lastModifiedDate) that has no backing key on ICart.
+ */
+export type CartFilterField = keyof ICart | "cartAge";
 
 export interface ICartFilterColumn {
-  /** Key on ICart this column filters. */
-  field: keyof ICart;
+  /** Field this column filters. */
+  field: CartFilterField;
   /** Label shown in the column dropdown. */
   label: string;
   type: FilterFieldType;
@@ -37,11 +43,10 @@ export const DATE_OPERATOR_OPTIONS: { label: string; value: string }[] = [
   { label: "Before", value: "lt" },
 ];
 
-export const STATUS_OPERATOR_OPTIONS: { label: string; value: string }[] = [
-  { label: "Is", value: "is" },
-];
-
-/** Columns the cart table allows filtering on (mirrors the visible columns). */
+/**
+ * Columns the cart table allows filtering on. Mirrors the visible table columns,
+ * plus Email (shown via search) and Cart Age (derived from Last Modified).
+ */
 export const CART_FILTER_COLUMNS: ICartFilterColumn[] = [
   { field: "cartNumber", label: "Cart Number", type: "text" },
   { field: "userName", label: "User Name", type: "text" },
@@ -49,13 +54,9 @@ export const CART_FILTER_COLUMNS: ICartFilterColumn[] = [
   { field: "email", label: "Email", type: "text" },
   { field: "itemCount", label: "Items", type: "number" },
   { field: "cartTotal", label: "Cart Total", type: "number" },
-  { field: "status", label: "Status", type: "status" },
+  { field: "cartAge", label: "Cart Age (days)", type: "number" },
   { field: "lastModifiedDate", label: "Last Modified", type: "date" },
 ];
-
-export const STATUS_VALUE_OPTIONS = (
-  Object.keys(STATUS_LABELS) as ICart["status"][]
-).map((value) => ({ label: STATUS_LABELS[value], value }));
 
 export const getColumnType = (columnName: string): FilterFieldType =>
   CART_FILTER_COLUMNS.find((c) => c.field === columnName)?.type ?? "text";
@@ -66,8 +67,6 @@ export const getOperatorsForType = (type: FilterFieldType) => {
       return NUMBER_OPERATOR_OPTIONS;
     case "date":
       return DATE_OPERATOR_OPTIONS;
-    case "status":
-      return STATUS_OPERATOR_OPTIONS;
     default:
       return OPERATOR_OPTIONS;
   }
@@ -80,11 +79,11 @@ export const getDefaultOperator = (type: FilterFieldType): string =>
 /** Applies one filter condition to a cart. */
 const matchesCondition = (cart: ICart, cond: IFilterCondition): boolean => {
   const type = getColumnType(cond.columnName);
-  const raw = cart[cond.columnName as keyof ICart];
-
-  if (type === "status") {
-    return String(raw) === cond.value;
-  }
+  // "cartAge" is derived (days since last modified); everything else is a key.
+  const raw =
+    cond.columnName === "cartAge"
+      ? cartAgeInDays(cart.lastModifiedDate)
+      : cart[cond.columnName as keyof ICart];
 
   if (type === "number") {
     const a = Number(raw);

@@ -3,7 +3,7 @@ import { Layout, Menu, Drawer, Image } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 import * as Icons from "@ant-design/icons";
 import { MENU_ITEMS } from "../../constants";
-import logo from "../../assets/png-logo.png";
+import logo from "../../assets/logo-amla.svg";
 import "./DynamicSidebar.scss";
 import { IDynamicSidebarProps } from "../../interfaces/clientInterfaces/common";
 
@@ -53,7 +53,7 @@ const DynamicSidebar: React.FC<IDynamicSidebarProps> = ({
       trigger={null}
     >
       {/* Logo */}
-      <div className="logo bgWhite">
+      <div className="logo">
         <h2 className="logoText">
           {!collapsed ? (
             <Image src={logo} width={60} height={40} preview={false} />
