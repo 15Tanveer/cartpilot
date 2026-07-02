@@ -7,7 +7,7 @@ import {
   Space,
   Button,
   Empty,
-  Spin,
+  Skeleton,
   App as AntdApp,
   Divider,
 } from "antd";
@@ -67,7 +67,7 @@ const ManageCart: React.FC = () => {
   const [userDetail, setUserDetail] = React.useState<IUserDetail | null>(
     stateUserDetail ?? null,
   );
-  const [loadingUser, setLoadingUser] = React.useState(false);
+  const [ , setLoadingUser] = React.useState(false);
 
   const [items, setItems] = React.useState<ICartItem[]>([]);
   const [loadingItems, setLoadingItems] = React.useState(false);
@@ -148,14 +148,12 @@ const ManageCart: React.FC = () => {
 
   if (!cart) {
     return (
-      <ActionCard
-        title="Manage Cart"
-        backBtnHandler={handleBack}
-        hideBackBtn={false}
-        saveBtnHandler={handleBack}
-        saveBtnText="Close"
-      >
-        {loadingCart ? <Spin /> : <Empty description="Cart not found" />}
+      <ActionCard title="Manage Cart" backBtnHandler={handleBack} hideBackBtn={false} saveBtnHandler={handleBack} saveBtnText="Close">
+        {loadingCart ? (
+          <Skeleton active paragraph={{ rows: 6 }} />
+        ) : (
+          <Empty description="Cart not found" />
+        )}
       </ActionCard>
     );
   }
@@ -260,9 +258,9 @@ const ManageCart: React.FC = () => {
           <Descriptions.Item label="Cart Number">
             {cart.cartNumber}
           </Descriptions.Item>
-          <Descriptions.Item label="User Name">
+          {/* <Descriptions.Item label="User Name">
             {cart.userName}
-          </Descriptions.Item>
+          </Descriptions.Item> */}
           <Descriptions.Item label="User ID">{cart.userId}</Descriptions.Item>
           <Descriptions.Item label="Email">{cart.email}</Descriptions.Item>
           <Descriptions.Item label="Status">
@@ -279,7 +277,7 @@ const ManageCart: React.FC = () => {
           </Descriptions.Item>
         </Descriptions>
 
-        {(userDetail || loadingUser) && (
+        {/* {(userDetail || loadingUser) && (
           <div>
             <Divider titlePlacement="left">Customer Account</Divider>
             {loadingUser && !userDetail ? (
@@ -315,7 +313,7 @@ const ManageCart: React.FC = () => {
               </Descriptions>
             ) : null}
           </div>
-        )}
+        )} */}
 
         <div>
           <Divider titlePlacement="left">Actions</Divider>
@@ -324,11 +322,13 @@ const ManageCart: React.FC = () => {
 
         <div>
           <Divider titlePlacement="left">Cart Items</Divider>
+          {loadingItems ? (
+            <Skeleton active title={false} paragraph={{ rows: 5 }} />
+          ) : (
           <Table<ICartItem>
             rowKey="id"
             columns={itemColumns}
             dataSource={items.length ? items : cart.items}
-            loading={loadingItems}
             pagination={false}
             summary={(rows) => {
               const total = rows.reduce(
@@ -347,6 +347,7 @@ const ManageCart: React.FC = () => {
               );
             }}
           />
+          )}
         </div>
       </Space>
     </ActionCard>
