@@ -6,12 +6,14 @@ import {
   Descriptions,
   Space,
   Button,
+  Dropdown,
   Empty,
   Image,
   Skeleton,
   App as AntdApp,
   Divider,
 } from "antd";
+import type { MenuProps } from "antd";
 import {
   MailOutlined,
   TagOutlined,
@@ -19,6 +21,8 @@ import {
   DeleteOutlined,
   ExportOutlined,
   BellOutlined,
+  FileTextOutlined,
+  FilePdfOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -42,6 +46,10 @@ import {
 } from "./cart.utils";
 import noImage from "../../assets/no-image.png";
 import { sendRecoveryEmail } from "../../services/recoveryEmailService";
+import {
+  exportCartToCsv,
+  exportCartToPdf,
+} from "../../services/cartExportService";
 
 // ---- Loading skeletons that mirror the real page layout ----
 
@@ -49,7 +57,7 @@ const SUMMARY_SKELETON_LABELS = [
   "Cart Number",
   "User ID",
   "Email",
-  "Status",
+  // "Status",
   "Last Modified",
   "Items",
   "Cart Total",
@@ -70,7 +78,7 @@ const CartSummarySkeleton: React.FC = () => (
 /** Shimmer for the action buttons row (widths roughly match the real buttons). */
 const ActionButtonsSkeleton: React.FC = () => (
   <Space wrap>
-    {[190, 175, 150, 155, 100, 130].map((width, index) => (
+    {[190, 100].map((width, index) => (
       <Skeleton.Button key={index} active style={{ width }} />
     ))}
   </Space>
@@ -161,6 +169,9 @@ const ManageCart: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { message } = AntdApp.useApp();
   const [sendingEmail, setSendingEmail] = React.useState(false);
+  // Controlled open state for the Export dropdown: the uncontrolled trigger
+  // can get stuck after the menu is dismissed without picking an option.
+  const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
 
   // userId source (see CartList.openManage): the ?userId query param lets a
   // direct navigation / refresh re-run the portal + user chain on its own.
@@ -277,24 +288,16 @@ const ManageCart: React.FC = () => {
       key: "image",
       width: 90,
       align: "center",
-      render: (value?: string) =>
-        value ? (
-          <Image
-            src={value}
-            alt=""
-            width={48}
-            height={48}
-            style={{ objectFit: "contain" }}
-          />
-        ) : (
-          <Image
-            src={noImage}
-            alt=""
-            width={48}
-            height={48}
-            style={{ objectFit: "contain" }}
-          />
-        ),
+      render: (value?: string) => (
+        <Image
+          src={value || noImage}
+          alt=""
+          width={48}
+          height={48}
+          style={{ objectFit: "contain" }}
+          preview={false}
+        />
+      ),
     },
     { title: "SKU", dataIndex: "sku", key: "sku" },
     { title: "Product", dataIndex: "name", key: "name" },
@@ -336,6 +339,28 @@ const ManageCart: React.FC = () => {
     }
   };
 
+  const exportMenuItems: MenuProps["items"] = [
+    { key: "csv", label: "Export as CSV", icon: <FileTextOutlined /> },
+    { key: "pdf", label: "Export as PDF", icon: <FilePdfOutlined /> },
+  ];
+
+  // Export the same data the page shows: fetched items when available,
+  // otherwise the items carried on the cart record.
+  const handleExport: MenuProps["onClick"] = async ({ key }) => {
+    setExportMenuOpen(false);
+    const exportItems = items.length ? items : cart.items;
+    try {
+      if (key === "csv") {
+        exportCartToCsv(cart, exportItems);
+      } else {
+        await exportCartToPdf(cart, exportItems);
+      }
+      message.success(`Cart exported as ${key.toUpperCase()}`);
+    } catch {
+      message.error("Failed to export cart. Please try again.");
+    }
+  };
+
   const featureButtons = (
     <Space wrap>
       <Button
@@ -346,7 +371,7 @@ const ManageCart: React.FC = () => {
       >
         Send Recovery Email
       </Button>
-      <Button
+      {/* <Button
         icon={<BellOutlined />}
         onClick={() => message.success("Reminder scheduled")}
       >
@@ -363,13 +388,15 @@ const ManageCart: React.FC = () => {
         onClick={() => message.success("Cart marked as recovered")}
       >
         Mark Recovered
-      </Button>
-      <Button
-        icon={<ExportOutlined />}
-        onClick={() => message.info("Cart exported")}
+      </Button> */}
+      <Dropdown
+        menu={{ items: exportMenuItems, onClick: handleExport }}
+        trigger={["click"]}
+        open={exportMenuOpen}
+        onOpenChange={(open) => setExportMenuOpen(open)}
       >
-        Export
-      </Button>
+        <Button icon={<ExportOutlined />}>Export</Button>
+      </Dropdown>
       {/* <Button
         danger
         icon={<DeleteOutlined />}
@@ -400,11 +427,11 @@ const ManageCart: React.FC = () => {
           </Descriptions.Item> */}
           <Descriptions.Item label="User ID">{cart.userId}</Descriptions.Item>
           <Descriptions.Item label="Email">{cart.email}</Descriptions.Item>
-          <Descriptions.Item label="Status">
+          {/* <Descriptions.Item label="Status">
             <Tag color={STATUS_COLORS[cart.status]}>
               {STATUS_LABELS[cart.status]}
             </Tag>
-          </Descriptions.Item>
+          </Descriptions.Item> */}
           <Descriptions.Item label="Last Modified">
             {formatCartDate(cart.lastModifiedDate)}
           </Descriptions.Item>
