@@ -24,8 +24,8 @@ import {
 import environmentConfig from "../../config/environment";
 import { sendRecoveryEmail } from "../../services/recoveryEmailService";
 import {
-  EMAIL_TEMPLATES,
-  DEFAULT_EMAIL_TEMPLATE_ID,
+  getAllowedTemplates,
+  WELCOME_TEMPLATE_ID,
 } from "../../services/emailTemplates";
 
 /** Admin console URL for creating/managing promotions. */
@@ -42,6 +42,11 @@ interface SendPromotionModalProps {
   onClose: () => void;
   /** Called after a successful (simulated) send so the parent can reset selection. */
   onSent?: () => void;
+  /**
+   * Template ids this context may pick from. Defaults to the Welcome template
+   * (the list-page bulk flow); the cart-detail page passes the Abandoned one.
+   */
+  allowedTemplateIds?: string[];
 }
 
 /** Recipients missing an email address can't be mailed and are flagged in step 2. */
@@ -75,11 +80,14 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
   recipients,
   onClose,
   onSent,
+  allowedTemplateIds = [WELCOME_TEMPLATE_ID],
 }) => {
   const { message } = AntdApp.useApp();
+  const templates = getAllowedTemplates(allowedTemplateIds);
+  const defaultTemplateId = templates[0]?.id;
   const [current, setCurrent] = useState(0);
   const [sending, setSending] = useState(false);
-  const [templateId, setTemplateId] = useState(DEFAULT_EMAIL_TEMPLATE_ID);
+  const [templateId, setTemplateId] = useState(defaultTemplateId);
 
   // Promotion list (step 1) — fetched from GET /Promotion/List.
   const [promotions, setPromotions] = useState<IPromotion[]>([]);
@@ -124,7 +132,7 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
     setSelectedPromotionId(null);
     setCurrent(0);
     setSending(false);
-    setTemplateId(DEFAULT_EMAIL_TEMPLATE_ID);
+    setTemplateId(defaultTemplateId);
     onClose();
   };
 
@@ -222,18 +230,6 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
         if (!start && !end) return "—";
         return `${start || "—"} – ${end || "—"}`;
       },
-    },
-    {
-      title: "Status",
-      dataIndex: "active",
-      key: "active",
-      align: "center",
-      render: (active: boolean) =>
-        active ? (
-          <Tag color="green">Active</Tag>
-        ) : (
-          <Tag color="default">Inactive</Tag>
-        ),
     },
   ];
 
@@ -333,7 +329,7 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
           onChange={(e) => setTemplateId(e.target.value)}
         >
           <Space orientation="vertical">
-            {EMAIL_TEMPLATES.map((template) => (
+            {templates.map((template) => (
               <Radio key={template.id} value={template.id}>
                 {template.name}{" "}
                 <Text type="secondary" style={{ fontSize: 12 }}>
@@ -365,7 +361,8 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
           disabled={mailable.length === 0}
           onClick={handleSend}
         >
-          Send to {mailable.length} customer{mailable.length === 1 ? "" : "s"}
+          Send Mail to {mailable.length} customer
+          {mailable.length === 1 ? "" : "s"}
         </Button>
       </Space>
     );

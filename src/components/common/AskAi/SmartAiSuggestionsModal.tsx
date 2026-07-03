@@ -31,8 +31,11 @@ import {
   findPromotionForPercent,
 } from "../../../api/promotionApi";
 import { sendRecoveryEmail } from "../../../services/recoveryEmailService";
-import { DEFAULT_EMAIL_TEMPLATE_ID } from "../../../services/emailTemplates";
+import { WELCOME_TEMPLATE_ID } from "../../../services/emailTemplates";
 import RecipientTemplateStep from "./RecipientTemplateStep";
+
+// The Smart AI list-page flow only offers the Welcome template.
+const AI_ALLOWED_TEMPLATE_IDS = [WELCOME_TEMPLATE_ID];
 
 const { Text, Paragraph } = Typography;
 
@@ -82,7 +85,7 @@ const SmartAiSuggestionsModal: React.FC<SmartAiSuggestionsModalProps> = ({
 
   // Cart ids checked in step 1 (one row per cart).
   const [selectedIds, setSelectedIds] = useState<React.Key[]>([]);
-  const [templateId, setTemplateId] = useState(DEFAULT_EMAIL_TEMPLATE_ID);
+  const [templateId, setTemplateId] = useState(WELCOME_TEMPLATE_ID);
   const [sending, setSending] = useState(false);
 
   // Study the highest-value carts (the ones worth tiering), capped so the AI
@@ -179,7 +182,7 @@ const SmartAiSuggestionsModal: React.FC<SmartAiSuggestionsModalProps> = ({
   useEffect(() => {
     if (open) {
       setStep(0);
-      setTemplateId(DEFAULT_EMAIL_TEMPLATE_ID);
+      setTemplateId(WELCOME_TEMPLATE_ID);
     }
   }, [open]);
 
@@ -326,7 +329,8 @@ const SmartAiSuggestionsModal: React.FC<SmartAiSuggestionsModalProps> = ({
           disabled={mailable.length === 0}
           onClick={handleSend}
         >
-          Send to {mailable.length} customer{mailable.length === 1 ? "" : "s"}
+          Send Mail to {mailable.length} customer
+          {mailable.length === 1 ? "" : "s"}
         </Button>
       </Space>
     );
@@ -422,6 +426,7 @@ const SmartAiSuggestionsModal: React.FC<SmartAiSuggestionsModalProps> = ({
           templateId={templateId}
           onTemplateChange={setTemplateId}
           extraColumns={promoColumn}
+          allowedTemplateIds={AI_ALLOWED_TEMPLATE_IDS}
         />
       )}
 

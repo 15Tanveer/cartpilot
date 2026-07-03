@@ -2,7 +2,7 @@ import React from "react";
 import { Table, Tag, Typography, Radio, Space, Divider } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { ICart } from "../../../pages/carts/cart.types";
-import { EMAIL_TEMPLATES } from "../../../services/emailTemplates";
+import { getAllowedTemplates } from "../../../services/emailTemplates";
 
 const { Text } = Typography;
 
@@ -14,6 +14,8 @@ interface RecipientTemplateStepProps {
   onTemplateChange: (templateId: string) => void;
   /** Optional extra column (e.g. the promo/discount for each recipient). */
   extraColumns?: ColumnsType<ICart>;
+  /** Restrict the template picker to these template ids (default: all). */
+  allowedTemplateIds?: string[];
 }
 
 /** Recipients missing an email address can't be mailed. */
@@ -29,8 +31,10 @@ const RecipientTemplateStep: React.FC<RecipientTemplateStepProps> = ({
   templateId,
   onTemplateChange,
   extraColumns = [],
+  allowedTemplateIds,
 }) => {
   const mailable = recipients.filter(hasEmail);
+  const templates = getAllowedTemplates(allowedTemplateIds);
 
   const columns: ColumnsType<ICart> = [
     { title: "User Name", dataIndex: "userName", key: "userName" },
@@ -70,7 +74,7 @@ const RecipientTemplateStep: React.FC<RecipientTemplateStepProps> = ({
           onChange={(e) => onTemplateChange(e.target.value)}
         >
           <Space orientation="vertical">
-            {EMAIL_TEMPLATES.map((template) => (
+            {templates.map((template) => (
               <Radio key={template.id} value={template.id}>
                 {template.name}{" "}
                 <Text type="secondary" style={{ fontSize: 12 }}>

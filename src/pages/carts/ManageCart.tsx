@@ -12,15 +12,7 @@ import {
   App as AntdApp,
   Divider,
 } from "antd";
-import {
-  MailOutlined,
-  TagOutlined,
-  CheckCircleOutlined,
-  DeleteOutlined,
-  ExportOutlined,
-  BellOutlined,
-  RobotOutlined,
-} from "@ant-design/icons";
+import { MailOutlined, RobotOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import {
   useLocation,
@@ -42,8 +34,9 @@ import {
   STATUS_LABELS,
 } from "./cart.utils";
 import noImage from "../../assets/no-image.png";
-import { sendRecoveryEmail } from "../../services/recoveryEmailService";
 import AskAiSuggestionModal from "../../components/common/AskAi/AskAiSuggestionModal";
+import SendPromotionModal from "./SendPromotionModal";
+import { ABANDONED_CART_TEMPLATE_ID } from "../../services/emailTemplates";
 
 // ---- Loading skeletons that mirror the real page layout ----
 
@@ -162,7 +155,7 @@ const ManageCart: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { message } = AntdApp.useApp();
-  const [sendingEmail, setSendingEmail] = React.useState(false);
+  const [sendModalOpen, setSendModalOpen] = React.useState(false);
   const [askAiOpen, setAskAiOpen] = React.useState(false);
 
   // userId source (see CartList.openManage): the ?userId query param lets a
@@ -287,6 +280,7 @@ const ManageCart: React.FC = () => {
             alt=""
             width={48}
             height={48}
+            preview={false}
             style={{ objectFit: "contain" }}
           />
         ) : (
@@ -295,6 +289,7 @@ const ManageCart: React.FC = () => {
             alt=""
             width={48}
             height={48}
+            preview={false}
             style={{ objectFit: "contain" }}
           />
         ),
@@ -323,66 +318,15 @@ const ManageCart: React.FC = () => {
     },
   ];
 
-  const handleSendRecoveryEmail = async () => {
-    setSendingEmail(true);
-    try {
-      await sendRecoveryEmail(cart);
-      message.success(`Recovery email sent to ${cart.email}`);
-    } catch (error) {
-      message.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to send recovery email",
-      );
-    } finally {
-      setSendingEmail(false);
-    }
-  };
-
   const featureButtons = (
     <Space wrap>
       <Button
         type="primary"
         icon={<MailOutlined />}
-        loading={sendingEmail}
-        onClick={handleSendRecoveryEmail}
+        onClick={() => setSendModalOpen(true)}
       >
-        Send Recovery Email
+        Send Mail
       </Button>
-      <Button
-        icon={<BellOutlined />}
-        onClick={() => message.success("Reminder scheduled")}
-      >
-        Schedule Reminder
-      </Button>
-      <Button
-        icon={<TagOutlined />}
-        onClick={() => message.info("Discount code DISCOUNT10 applied to cart")}
-      >
-        Apply Discount
-      </Button>
-      <Button
-        icon={<CheckCircleOutlined />}
-        onClick={() => message.success("Cart marked as recovered")}
-      >
-        Mark Recovered
-      </Button>
-      <Button
-        icon={<ExportOutlined />}
-        onClick={() => message.info("Cart exported")}
-      >
-        Export
-      </Button>
-      {/* <Button
-        danger
-        icon={<DeleteOutlined />}
-        onClick={() => {
-          message.success("Cart deleted");
-          handleBack();
-        }}
-      >
-        Delete Cart
-      </Button> */}
     </Space>
   );
 
@@ -495,6 +439,15 @@ const ManageCart: React.FC = () => {
         open={askAiOpen}
         carts={[cart]}
         onClose={() => setAskAiOpen(false)}
+      />
+
+      {/* Detail-page send: this single cart, restricted to the Abandoned Cart
+          template (the list page uses the Welcome template instead). */}
+      <SendPromotionModal
+        open={sendModalOpen}
+        recipients={[cart]}
+        allowedTemplateIds={[ABANDONED_CART_TEMPLATE_ID]}
+        onClose={() => setSendModalOpen(false)}
       />
     </ActionCard>
   );
