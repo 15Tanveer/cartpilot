@@ -40,6 +40,7 @@ import {
   STATUS_COLORS,
   STATUS_LABELS,
 } from "./cart.utils";
+import noImage from "../../assets/no-image.png";
 import { sendRecoveryEmail } from "../../services/recoveryEmailService";
 
 // ---- Loading skeletons that mirror the real page layout ----
@@ -254,7 +255,7 @@ const ManageCart: React.FC = () => {
         backBtnHandler={handleBack}
         hideBackBtn={false}
         saveBtnHandler={handleBack}
-        saveBtnText="Close"
+        // saveBtnText="Close"
       >
         <ManageCartSkeleton />
       </ActionCard>
@@ -286,7 +287,13 @@ const ManageCart: React.FC = () => {
             style={{ objectFit: "contain" }}
           />
         ) : (
-          "-"
+          <Image
+            src={noImage}
+            alt=""
+            width={48}
+            height={48}
+            style={{ objectFit: "contain" }}
+          />
         ),
     },
     { title: "SKU", dataIndex: "sku", key: "sku" },
@@ -363,7 +370,7 @@ const ManageCart: React.FC = () => {
       >
         Export
       </Button>
-      <Button
+      {/* <Button
         danger
         icon={<DeleteOutlined />}
         onClick={() => {
@@ -372,7 +379,7 @@ const ManageCart: React.FC = () => {
         }}
       >
         Delete Cart
-      </Button>
+      </Button> */}
     </Space>
   );
 
@@ -381,7 +388,7 @@ const ManageCart: React.FC = () => {
       title={`Manage Cart - ${cart.cartNumber}`}
       backBtnHandler={handleBack}
       saveBtnHandler={handleBack}
-      saveBtnText="Close"
+      // saveBtnText="Close"
     >
       <Space orientation="vertical" style={{ width: "100%" }} size="large">
         <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">

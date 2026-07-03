@@ -47,13 +47,13 @@ const ActionCard = (props: IActionCard) => {
                 {backBtnText || "Back"}
               </Button>
             )}
-            <Button
+            {saveBtnText && <Button
               type="primary"
               onClick={saveBtnHandler}
               loading={saveLoader}
             >
               {saveBtnText || "Save & Close"}
-            </Button>
+            </Button>}
           </Space>
         )
       }

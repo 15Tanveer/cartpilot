@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Table, Input, Space, Button, Badge, App as AntdApp } from "antd";
+import {
+  Table,
+  Input,
+  Space,
+  Button,
+  Badge,
+  Skeleton,
+  App as AntdApp,
+} from "antd";
 import {
   EditOutlined,
   SearchOutlined,
@@ -27,6 +35,88 @@ import { IFilterCondition, applyCartFilters } from "./cart.filters";
 
 const DEFAULT_PAGE_SIZE = 50;
 const PAGE_SIZE_OPTIONS = ["50", "100", "200", "500"];
+
+// ---- Loading skeleton that mirrors the real table layout ----
+
+interface ISkeletonRow {
+  id: number;
+}
+
+const cartSkeletonColumns: ColumnsType<ISkeletonRow> = [
+  {
+    title: "Cart Number",
+    key: "cartNumber",
+    render: () => (
+      <Skeleton.Input active size="small" style={{ width: 110, minWidth: 80 }} />
+    ),
+  },
+  {
+    title: "User Name",
+    key: "userName",
+    render: () => (
+      <Skeleton.Input active size="small" style={{ width: 140, minWidth: 100 }} />
+    ),
+  },
+  {
+    title: "User ID",
+    key: "userId",
+    render: () => (
+      <Skeleton.Input active size="small" style={{ width: 100, minWidth: 80 }} />
+    ),
+  },
+  {
+    title: "Items",
+    key: "itemCount",
+    align: "center",
+    render: () => (
+      <Skeleton.Input active size="small" style={{ width: 40, minWidth: 40 }} />
+    ),
+  },
+  {
+    title: "Cart Total",
+    key: "cartTotal",
+    align: "right",
+    render: () => (
+      <Skeleton.Input active size="small" style={{ width: 80, minWidth: 60 }} />
+    ),
+  },
+  {
+    title: "Cart Age",
+    key: "cartAge",
+    align: "center",
+    render: () => (
+      <Skeleton.Input active size="small" style={{ width: 60, minWidth: 50 }} />
+    ),
+  },
+  {
+    title: "Last Modified",
+    key: "lastModifiedDate",
+    render: () => (
+      <Skeleton.Input active size="small" style={{ width: 140, minWidth: 100 }} />
+    ),
+  },
+  {
+    title: "Action",
+    key: "action",
+    align: "center",
+    render: () => <Skeleton.Button active size="small" style={{ width: 100 }} />,
+  },
+];
+
+/** Shimmer for the cart list: the real Table shell (same columns and headers,
+ *  plus a disabled selection column) filled with shimmering placeholder rows. */
+const CartListTableSkeleton: React.FC<{ rows?: number }> = ({ rows = 8 }) => (
+  <Table<ISkeletonRow>
+    rowKey="id"
+    rowSelection={{
+      selectedRowKeys: [],
+      getCheckboxProps: () => ({ disabled: true }),
+    }}
+    columns={cartSkeletonColumns}
+    dataSource={Array.from({ length: rows }, (_, index) => ({ id: index }))}
+    pagination={false}
+  />
+);
 
 const CartList: React.FC = () => {
   const navigate = useNavigate();
@@ -163,6 +253,7 @@ const CartList: React.FC = () => {
       title: "User Name",
       dataIndex: "userName",
       key: "userName",
+      render: (value: string) => value?.trim() || "Guest User",
     },
     {
       title: "User ID",
@@ -252,29 +343,32 @@ const CartList: React.FC = () => {
       customButtonSection={filterSection}
     >
       <Space orientation="vertical" style={{ width: "100%" }} size="large">
-        <Table<ICart>
-          rowKey="id"
-          rowSelection={rowSelection}
-          columns={columns}
-          dataSource={visibleCarts}
-          loading={loading}
-          onRow={(record) => ({
-            onClick: () => openCart(record),
-            style: { cursor: "pointer" },
-          })}
-          pagination={{
-            current: pageIndex,
-            pageSize,
-            total,
-            showSizeChanger: true,
-            pageSizeOptions: PAGE_SIZE_OPTIONS,
-            showTotal: (t) => `${t} carts`,
-            onChange: (page, size) => {
-              setPageIndex(page);
-              setPageSize(size);
-            },
-          }}
-        />
+        {loading ? (
+          <CartListTableSkeleton />
+        ) : (
+          <Table<ICart>
+            rowKey="id"
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={visibleCarts}
+            onRow={(record) => ({
+              onClick: () => openCart(record),
+              style: { cursor: "pointer" },
+            })}
+            pagination={{
+              current: pageIndex,
+              pageSize,
+              total,
+              showSizeChanger: true,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              showTotal: (t) => `${t} carts`,
+              onChange: (page, size) => {
+                setPageIndex(page);
+                setPageSize(size);
+              },
+            }}
+          />
+        )}
       </Space>
 
       <FilterDialog
