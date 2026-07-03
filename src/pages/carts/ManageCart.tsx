@@ -6,6 +6,7 @@ import {
   Descriptions,
   Space,
   Button,
+  Dropdown,
   Empty,
   Image,
   Skeleton,
@@ -44,7 +45,7 @@ const SUMMARY_SKELETON_LABELS = [
   "Cart Number",
   "User ID",
   "Email",
-  "Status",
+  // "Status",
   "Last Modified",
   "Items",
   "Cart Total",
@@ -65,7 +66,7 @@ const CartSummarySkeleton: React.FC = () => (
 /** Shimmer for the action buttons row (widths roughly match the real buttons). */
 const ActionButtonsSkeleton: React.FC = () => (
   <Space wrap>
-    {[190, 175, 150, 155, 100, 130].map((width, index) => (
+    {[190, 100].map((width, index) => (
       <Skeleton.Button key={index} active style={{ width }} />
     ))}
   </Space>
@@ -347,11 +348,11 @@ const ManageCart: React.FC = () => {
           </Descriptions.Item> */}
           <Descriptions.Item label="User ID">{cart.userId}</Descriptions.Item>
           <Descriptions.Item label="Email">{cart.email}</Descriptions.Item>
-          <Descriptions.Item label="Status">
+          {/* <Descriptions.Item label="Status">
             <Tag color={STATUS_COLORS[cart.status]}>
               {STATUS_LABELS[cart.status]}
             </Tag>
-          </Descriptions.Item>
+          </Descriptions.Item> */}
           <Descriptions.Item label="Last Modified">
             {formatCartDate(cart.lastModifiedDate)}
           </Descriptions.Item>
