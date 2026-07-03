@@ -2,6 +2,11 @@ import emailjs from "@emailjs/browser";
 import environmentConfig from "../config/environment";
 import { ICart } from "../pages/carts/cart.types";
 import { formatCurrency } from "../pages/carts/cart.utils";
+import { WELCOME_TEMPLATE_ID } from "./emailTemplates";
+import {
+  CLEARANCE_CAMPAIGN,
+  resolveWelcomeCampaign,
+} from "./welcomeEmailContent";
 
 /**
  * Absolute origin of the app, e.g. "http://localhost:3000". Used to turn files
@@ -22,6 +27,11 @@ const STORE = {
   supportEmail: "aniket.nagpure@amla.io",
   discountCode: "DISCOUNT10",
 };
+
+/** Storefront the Welcome email's CTA / shop link points at. */
+const WELCOME_SHOP_URL = "https://webstore-gswr-np.znodecorp.com/";
+/** Support address shown in the Welcome email footer. */
+const WELCOME_SUPPORT_EMAIL = "support@amla.io";
 
 /** Fallback thumbnail when a line item has no image. */
 const PLACEHOLDER_PRODUCT_IMAGE = "https://placehold.co/64x64?text=Item";
@@ -93,9 +103,53 @@ export const buildRecoveryEmailParams = (
 };
 
 /**
+ * Maps a cart onto the Welcome template's variables. The banner (image, fallback,
+ * alt) and heading copy are chosen from the promo code — "CHRISTMAS" → Christmas
+ * banner, "HALLOWEEN" → Halloween banner, anything else → Clearance — while the
+ * fallback banner is always Clearance. Keys must match the `{{placeholders}}`
+ * configured in the Welcome EmailJS template exactly.
+ */
+export const buildWelcomeEmailParams = (
+  cart: ICart,
+  promo?: IRecoveryPromo,
+) => {
+  const campaign = resolveWelcomeCampaign(promo?.code);
+
+  return {
+    // Customer
+    customer_name: cart.userName,
+
+    // Branding
+    store_name: STORE.name,
+
+    // Banner — picked from the coupon code, with Clearance as the fallback image.
+    banner_image: campaign.bannerImage,
+    banner_image_fallback: CLEARANCE_CAMPAIGN.bannerImage,
+    banner_alt: campaign.bannerAlt,
+
+    // Heading copy — 2–3 lines chosen conditionally from the coupon code.
+    heading_content: campaign.headingContent,
+
+    // Promo code the shopper enters at checkout.
+    discount_code: promo?.code || STORE.discountCode,
+
+    // Where the CTA / shop link sends the customer.
+    shop_url: WELCOME_SHOP_URL,
+
+    // Footer
+    support_email: WELCOME_SUPPORT_EMAIL,
+    year: String(new Date().getFullYear()),
+
+    // Recipient — the template's "To Email" field must be {{email}}.
+    email: cart.email,
+  };
+};
+
+/**
  * Sends the abandoned-cart recovery email for the given cart via EmailJS using
  * the given template. `templateId` falls back to the configured default;
- * `promo` optionally injects a matched promotion's code + percentage.
+ * `promo` optionally injects a matched promotion's code + percentage. The Welcome
+ * template uses its own field bindings (banner + heading chosen from the code).
  * Resolves with the EmailJS response, rejects if sending fails or config is missing.
  */
 export const sendRecoveryEmail = (
@@ -116,10 +170,12 @@ export const sendRecoveryEmail = (
     );
   }
 
-  return emailjs.send(
-    emailjsServiceId,
-    resolvedTemplateId,
-    buildRecoveryEmailParams(cart, promo),
-    { publicKey: emailjsPublicKey },
-  );
+  const params =
+    resolvedTemplateId === WELCOME_TEMPLATE_ID
+      ? buildWelcomeEmailParams(cart, promo)
+      : buildRecoveryEmailParams(cart, promo);
+
+  return emailjs.send(emailjsServiceId, resolvedTemplateId, params, {
+    publicKey: emailjsPublicKey,
+  });
 };

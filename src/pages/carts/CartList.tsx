@@ -22,7 +22,7 @@ import {
   DollarOutlined,
   ClockCircleOutlined,
   RiseOutlined,
-  RobotOutlined,
+  ThunderboltFilled,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { TableRowSelection } from "antd/es/table/interface";
@@ -47,7 +47,6 @@ import SendPromotionModal from "./SendPromotionModal";
 import { IFilterCondition, applyCartFilters } from "./cart.filters";
 import AskAiSuggestionModal from "../../components/common/AskAi/AskAiSuggestionModal";
 import SmartAiSuggestionsModal from "../../components/common/AskAi/SmartAiSuggestionsModal";
-import SmartAiFloatButton from "../../components/common/AskAi/SmartAiFloatButton";
 
 const { Text } = Typography;
 
@@ -98,21 +97,33 @@ const cartSkeletonColumns: ColumnsType<ISkeletonRow> = [
     title: "Cart Number",
     key: "cartNumber",
     render: () => (
-      <Skeleton.Input active size="small" style={{ width: 110, minWidth: 80 }} />
+      <Skeleton.Input
+        active
+        size="small"
+        style={{ width: 110, minWidth: 80 }}
+      />
     ),
   },
   {
     title: "User Name",
     key: "userName",
     render: () => (
-      <Skeleton.Input active size="small" style={{ width: 140, minWidth: 100 }} />
+      <Skeleton.Input
+        active
+        size="small"
+        style={{ width: 140, minWidth: 100 }}
+      />
     ),
   },
   {
     title: "User ID",
     key: "userId",
     render: () => (
-      <Skeleton.Input active size="small" style={{ width: 100, minWidth: 80 }} />
+      <Skeleton.Input
+        active
+        size="small"
+        style={{ width: 100, minWidth: 80 }}
+      />
     ),
   },
   {
@@ -143,14 +154,20 @@ const cartSkeletonColumns: ColumnsType<ISkeletonRow> = [
     title: "Last Modified",
     key: "lastModifiedDate",
     render: () => (
-      <Skeleton.Input active size="small" style={{ width: 140, minWidth: 100 }} />
+      <Skeleton.Input
+        active
+        size="small"
+        style={{ width: 140, minWidth: 100 }}
+      />
     ),
   },
   {
     title: "Action",
     key: "action",
     align: "center",
-    render: () => <Skeleton.Button active size="small" style={{ width: 100 }} />,
+    render: () => (
+      <Skeleton.Button active size="small" style={{ width: 100 }} />
+    ),
   },
 ];
 
@@ -232,7 +249,11 @@ const StatTileSkeleton: React.FC = () => (
       border: "1px solid #f0f0f0",
     }}
   >
-    <Skeleton active title={false} paragraph={{ rows: 2, width: ["60%", "80%"] }} />
+    <Skeleton
+      active
+      title={false}
+      paragraph={{ rows: 2, width: ["60%", "80%"] }}
+    />
   </div>
 );
 
@@ -295,9 +316,12 @@ const CartList: React.FC = () => {
       // Carry the userId in the URL so a refresh / direct link on the manage
       // page can re-run the portal + user chain itself; the router state keeps
       // this navigation fast by handing over the already-fetched detail.
-      navigate(`/carts/edit/${cart.id}?userId=${encodeURIComponent(cart.userId)}`, {
-        state: { cart, userDetail: response.User },
-      });
+      navigate(
+        `/carts/edit/${cart.id}?userId=${encodeURIComponent(cart.userId)}`,
+        {
+          state: { cart, userDetail: response.User },
+        },
+      );
     } catch {
       message.error("Failed to load user details. Please try again.");
     } finally {
@@ -313,7 +337,8 @@ const CartList: React.FC = () => {
       try {
         const response = await getCartListApi({ pageIndex, pageSize });
         if (isCancelled) return;
-        const mappedCarts = extractCartListItems(response).map(mapApiCartToICart);
+        const mappedCarts =
+          extractCartListItems(response).map(mapApiCartToICart);
         setCarts(mappedCarts);
         setTotal(extractCartListTotal(response, mappedCarts.length));
       } catch {
@@ -396,7 +421,11 @@ const CartList: React.FC = () => {
       dataIndex: "cartNumber",
       key: "cartNumber",
       render: (value: string, record) => (
-        <Button type="link" style={{ padding: 0 }} onClick={() => openCart(record)}>
+        <Button
+          type="link"
+          style={{ padding: 0 }}
+          onClick={() => openCart(record)}
+        >
           {value}
         </Button>
       ),
@@ -412,9 +441,7 @@ const CartList: React.FC = () => {
             <Avatar
               size={34}
               style={{
-                backgroundColor: value?.trim()
-                  ? avatarColor(name)
-                  : "#bfbfbf",
+                backgroundColor: value?.trim() ? avatarColor(name) : "#bfbfbf",
                 flexShrink: 0,
               }}
               icon={!value?.trim() ? <UserOutlined /> : undefined}
@@ -435,9 +462,7 @@ const CartList: React.FC = () => {
       title: "User ID",
       dataIndex: "userId",
       key: "userId",
-      render: (value: string) => (
-        <Text type="secondary">{value || "—"}</Text>
-      ),
+      render: (value: string) => <Text type="secondary">{value || "—"}</Text>,
     },
     {
       title: "Status",
@@ -534,6 +559,22 @@ const CartList: React.FC = () => {
           Send Mail ({selectedRowKeys.length})
         </Button>
       )}
+      {/* <Button
+        icon={<RobotOutlined />}
+        disabled={loading || visibleCarts.length === 0}
+        onClick={() => setAskAiOpen(true)}
+      >
+        Ask AI
+        {selectedRowKeys.length > 0 ? ` (${selectedRowKeys.length})` : ""}
+      </Button> */}
+      <Button
+        type="primary"
+        icon={<ThunderboltFilled />}
+        disabled={loading || visibleCarts.length === 0}
+        onClick={() => setSmartAiOpen(true)}
+      >
+        Smart AI Suggestions
+      </Button>
       <Input
         allowClear
         placeholder="Search this page"
@@ -631,13 +672,6 @@ const CartList: React.FC = () => {
             }}
           />
         )}
-
-        {!loading && visibleCarts.length > 0 && (
-          <Button icon={<RobotOutlined />} onClick={() => setAskAiOpen(true)}>
-            Ask AI for coupon/promotion suggestions
-            {selectedRowKeys.length > 0 ? ` (${selectedRowKeys.length} selected)` : ""}
-          </Button>
-        )}
       </Space>
 
       <FilterDialog
@@ -658,15 +692,10 @@ const CartList: React.FC = () => {
         open={askAiOpen}
         // Use the selected carts if any are checked, otherwise cap to a small
         // batch from the current page so the AI request stays cheap.
-        carts={selectedCarts.length > 0 ? selectedCarts : visibleCarts.slice(0, 10)}
+        carts={
+          selectedCarts.length > 0 ? selectedCarts : visibleCarts.slice(0, 10)
+        }
         onClose={() => setAskAiOpen(false)}
-      />
-
-      {/* Floating action: studies Cart Total + Cart Age across all loaded carts
-          and proposes batch promotions + inverse-tiered per-cart discounts. */}
-      <SmartAiFloatButton
-        visible={!loading && visibleCarts.length > 0}
-        onClick={() => setSmartAiOpen(true)}
       />
 
       <SmartAiSuggestionsModal

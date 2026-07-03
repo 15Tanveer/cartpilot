@@ -190,12 +190,9 @@ const ManageCart: React.FC = () => {
   // router state but have a userId to look up.
   const lookupUserId = userIdParam || cart?.userId || "";
   React.useEffect(() => {
-    if (userDetail) return;
-    if (!lookupUserId) {
-      // Without a user the item fetch below can never run; stop waiting.
-      setItemsResolved(true);
-      return;
-    }
+    // Without a user the item fetch can never run; the render guard below treats
+    // "no userId" as already-resolved, so nothing to do here in that case.
+    if (userDetail || !lookupUserId) return;
     const loadUser = async () => {
       try {
         const response = await getUserDetailByStoreCode(lookupUserId);
@@ -244,8 +241,11 @@ const ManageCart: React.FC = () => {
 
   
   // Whole-page shimmer until the cart and its line items have loaded; the
-  // real content then appears in one go instead of section by section.
-  if (!itemsResolved) {
+  // real content then appears in one go instead of section by section. When
+  // there is no userId to look up, the fetch chain never runs, so treat that
+  // as already-resolved instead of syncing state from an effect.
+  const resolved = itemsResolved || !lookupUserId;
+  if (!resolved) {
     return (
       <ActionCard
         title={cart ? `Manage Cart - ${cart.cartNumber}` : "Manage Cart"}

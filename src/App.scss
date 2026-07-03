@@ -610,6 +610,10 @@ h6 {
 }
 
 /* Ant Design Modal */
+.ant-modal-root .ant-modal-wrap {
+  overflow: hidden;
+}
+
 .ant-modal-header,
 .ant-modal-title {
   font-family:
