@@ -18,7 +18,11 @@ import type { TableRowSelection } from "antd/es/table/interface";
 import { BulbOutlined, RobotOutlined, MailOutlined } from "@ant-design/icons";
 import { ICart } from "../../../pages/carts/cart.types";
 import { IPromotion } from "../../../pages/carts/promotion.types";
-import { cartAgeInDays } from "../../../pages/carts/cart.utils";
+import {
+  cartAgeInDays,
+  formatCartAge,
+  formatCurrency,
+} from "../../../pages/carts/cart.utils";
 import {
   getSmartBatchSuggestions,
   SMART_BATCH_CART_LIMIT,
@@ -83,8 +87,13 @@ const SmartAiSuggestionsModal: React.FC<SmartAiSuggestionsModalProps> = ({
   const [result, setResult] = useState<IAiBatchSuggestion>(EMPTY);
   const [promotions, setPromotions] = useState<IPromotion[]>([]);
 
-  // Cart ids checked in step 1 (one row per cart).
-  const [selectedIds, setSelectedIds] = useState<React.Key[]>([]);
+  // Cart ids checked in step 1 (one row per cart). `null` means "not yet
+  // touched" and defaults to every row being selected; once the user changes
+  // the selection it holds their explicit set of keys. Deriving the default
+  // this way avoids a setState-in-effect to pre-select rows.
+  const [selectedIdsOverride, setSelectedIdsOverride] = useState<
+    React.Key[] | null
+  >(null);
   const [templateId, setTemplateId] = useState(WELCOME_TEMPLATE_ID);
   const [sending, setSending] = useState(false);
 
@@ -173,32 +182,31 @@ const SmartAiSuggestionsModal: React.FC<SmartAiSuggestionsModalProps> = ({
     );
   }, [result.tiers, cartByNumber, promotions]);
 
-  // Pre-select every row once the rows are known.
-  useEffect(() => {
-    setSelectedIds(rows.map((r) => r.cart.id));
-  }, [rows]);
+  // The effective selection: every row by default, or the user's explicit set
+  // once they've changed it. Derived (not synced via an effect) so unchecking a
+  // row and reopening the modal both behave correctly.
+  const selectedIds = useMemo(
+    () => selectedIdsOverride ?? rows.map((r) => r.cart.id),
+    [selectedIdsOverride, rows],
+  );
 
-  // Reset back to step 1 each time the modal is reopened.
-  useEffect(() => {
-    if (open) {
-      setStep(0);
-      setTemplateId(WELCOME_TEMPLATE_ID);
-    }
-  }, [open]);
-
-  // The checked rows, and the carts + per-cart promo derived from them.
-  const selectedRows = rows.filter((r) => selectedIds.includes(r.cart.id));
-  const recipients = selectedRows.map((r) => r.cart);
-  const promoByCartNumber = useMemo(() => {
-    const map = new Map<string, { code?: string; percent: number }>();
-    selectedRows.forEach((r) =>
-      map.set(r.cart.cartNumber, {
+  // The carts to email and the per-cart promo, derived from the current
+  // selection in one memo.
+  const { recipients, promoByCartNumber } = useMemo(() => {
+    const selectedKeys = new Set(selectedIds);
+    const chosen = rows.filter((r) => selectedKeys.has(r.cart.id));
+    const promoMap = new Map<string, { code?: string; percent: number }>();
+    chosen.forEach((r) =>
+      promoMap.set(r.cart.cartNumber, {
         code: r.promotion?.code,
         percent: r.percent,
       }),
     );
-    return map;
-  }, [selectedRows]);
+    return {
+      recipients: chosen.map((r) => r.cart),
+      promoByCartNumber: promoMap,
+    };
+  }, [rows, selectedIds]);
 
   const goToRecipients = () => {
     if (recipients.length === 0) {
@@ -259,6 +267,18 @@ const SmartAiSuggestionsModal: React.FC<SmartAiSuggestionsModalProps> = ({
       render: (_: unknown, row) => row.cart.userName?.trim() || "Guest User",
     },
     {
+      title: "Aged",
+      key: "aged",
+      render: (_: unknown, row) => formatCartAge(row.cart.lastModifiedDate),
+    },
+    {
+      title: "Cart Total",
+      key: "cartTotal",
+      align: "right",
+      render: (_: unknown, row) =>
+        formatCurrency(row.cart.cartTotal, row.cart.currency),
+    },
+    {
       title: "Discount",
       key: "discount",
       render: (_: unknown, row) => (
@@ -285,7 +305,7 @@ const SmartAiSuggestionsModal: React.FC<SmartAiSuggestionsModalProps> = ({
 
   const rowSelection: TableRowSelection<IDiscountRow> = {
     selectedRowKeys: selectedIds,
-    onChange: (keys) => setSelectedIds(keys),
+    onChange: (keys) => setSelectedIdsOverride(keys),
   };
 
   // Extra column on the step-2 recipient table: the promo/discount per recipient.
