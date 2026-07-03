@@ -35,11 +35,24 @@ export interface IRecoveryEmailItem {
   price: string;
 }
 
+/** Optional promotion attached to a send: its coupon code and percentage. */
+export interface IRecoveryPromo {
+  /** Coupon code the shopper enters at checkout, e.g. "SAVE10". */
+  code?: string;
+  /** Discount percentage for this cart's tier, e.g. 10. */
+  percent?: number;
+}
+
 /**
  * Maps a cart onto the EmailJS template variables. Keys here must match the
- * `{{placeholders}}` configured in the EmailJS template exactly.
+ * `{{placeholders}}` configured in the EmailJS template exactly. An optional
+ * promo overrides the static discount so the email carries the promotion code
+ * and percentage matched for this cart's tier.
  */
-export const buildRecoveryEmailParams = (cart: ICart) => {
+export const buildRecoveryEmailParams = (
+  cart: ICart,
+  promo?: IRecoveryPromo,
+) => {
   const items: IRecoveryEmailItem[] = cart.items.map((item) => ({
     product_image: item.image ?? PLACEHOLDER_PRODUCT_IMAGE,
     product_name: item.name,
@@ -68,7 +81,10 @@ export const buildRecoveryEmailParams = (cart: ICart) => {
 
     // Checkout / promo — routes the shopper to the checkout page for their user id.
     checkout_url: `${PUBLIC_BASE}/checkout/${encodeURIComponent(cart.userId)}`,
-    discount_code: STORE.discountCode,
+    // Promo code + percentage: use the matched promotion when supplied, else the
+    // template's static fallback code.
+    discount_code: promo?.code || STORE.discountCode,
+    discount_percent: promo?.percent != null ? `${promo.percent}%` : "",
 
     // Footer
     support_email: STORE.supportEmail,
@@ -77,14 +93,21 @@ export const buildRecoveryEmailParams = (cart: ICart) => {
 };
 
 /**
- * Sends the abandoned-cart recovery email for the given cart via EmailJS.
+ * Sends the abandoned-cart recovery email for the given cart via EmailJS using
+ * the given template. `templateId` falls back to the configured default;
+ * `promo` optionally injects a matched promotion's code + percentage.
  * Resolves with the EmailJS response, rejects if sending fails or config is missing.
  */
-export const sendRecoveryEmail = (cart: ICart) => {
+export const sendRecoveryEmail = (
+  cart: ICart,
+  templateId?: string,
+  promo?: IRecoveryPromo,
+) => {
   const { emailjsServiceId, emailjsTemplateId, emailjsPublicKey } =
     environmentConfig;
+  const resolvedTemplateId = templateId || emailjsTemplateId;
 
-  if (!emailjsServiceId || !emailjsTemplateId || !emailjsPublicKey) {
+  if (!emailjsServiceId || !resolvedTemplateId || !emailjsPublicKey) {
     return Promise.reject(
       new Error(
         "EmailJS is not configured. Set REACT_APP_EMAILJS_SERVICE_ID, " +
@@ -95,8 +118,8 @@ export const sendRecoveryEmail = (cart: ICart) => {
 
   return emailjs.send(
     emailjsServiceId,
-    emailjsTemplateId,
-    buildRecoveryEmailParams(cart),
+    resolvedTemplateId,
+    buildRecoveryEmailParams(cart, promo),
     { publicKey: emailjsPublicKey },
   );
 };

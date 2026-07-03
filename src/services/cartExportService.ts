@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { ICart, ICartItem } from "../pages/carts/cart.types";

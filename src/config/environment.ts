@@ -16,6 +16,7 @@ export interface EnvironmentConfig {
   emailjsTemplateId: string;
   emailjsPublicKey: string;
   storeCode: string;
+  geminiApiKey: string;
 }
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -33,6 +34,7 @@ export const environmentConfig: EnvironmentConfig = {
   emailjsTemplateId: process.env.REACT_APP_EMAILJS_TEMPLATE_ID || "",
   emailjsPublicKey: process.env.REACT_APP_EMAILJS_PUBLIC_KEY || "",
   storeCode: process.env.REACT_APP_STORE_CODE || "GSW",
+  geminiApiKey: process.env.REACT_APP_GEMINI_API_KEY || "",
 };
 
 export default environmentConfig;

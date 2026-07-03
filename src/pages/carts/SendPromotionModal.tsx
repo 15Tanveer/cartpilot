@@ -7,6 +7,8 @@ import {
   Table,
   Typography,
   Tag,
+  Radio,
+  Divider,
   App as AntdApp,
 } from "antd";
 import { MailOutlined, PlusOutlined } from "@ant-design/icons";
@@ -20,6 +22,11 @@ import {
   mapApiPromotionToIPromotion,
 } from "../../api/promotionApi";
 import environmentConfig from "../../config/environment";
+import { sendRecoveryEmail } from "../../services/recoveryEmailService";
+import {
+  getAllowedTemplates,
+  WELCOME_TEMPLATE_ID,
+} from "../../services/emailTemplates";
 
 /** Admin console URL for creating/managing promotions. */
 const ADMIN_PROMOTION_URL = environmentConfig.adminUrl
@@ -35,6 +42,11 @@ interface SendPromotionModalProps {
   onClose: () => void;
   /** Called after a successful (simulated) send so the parent can reset selection. */
   onSent?: () => void;
+  /**
+   * Template ids this context may pick from. Defaults to the Welcome template
+   * (the list-page bulk flow); the cart-detail page passes the Abandoned one.
+   */
+  allowedTemplateIds?: string[];
 }
 
 /** Recipients missing an email address can't be mailed and are flagged in step 2. */
@@ -68,10 +80,14 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
   recipients,
   onClose,
   onSent,
+  allowedTemplateIds = [WELCOME_TEMPLATE_ID],
 }) => {
   const { message } = AntdApp.useApp();
+  const templates = getAllowedTemplates(allowedTemplateIds);
+  const defaultTemplateId = templates[0]?.id;
   const [current, setCurrent] = useState(0);
   const [sending, setSending] = useState(false);
+  const [templateId, setTemplateId] = useState(defaultTemplateId);
 
   // Promotion list (step 1) — fetched from GET /Promotion/List.
   const [promotions, setPromotions] = useState<IPromotion[]>([]);
@@ -116,6 +132,7 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
     setSelectedPromotionId(null);
     setCurrent(0);
     setSending(false);
+    setTemplateId(defaultTemplateId);
     onClose();
   };
 
@@ -127,12 +144,6 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
     setCurrent(1);
   };
 
-  // Skip the promotion list and send a plain email (no promotion attached).
-  const skipToReview = () => {
-    setSelectedPromotionId(null);
-    setCurrent(1);
-  };
-
   const handleSend = async () => {
     if (mailable.length === 0) {
       message.warning("None of the selected carts have an email address.");
@@ -140,21 +151,33 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
     }
     setSending(true);
     try {
-      // Simulated send. Swap this block for a real per-recipient EmailJS send
-      // (see services/recoveryEmailService.ts) when the promotion template exists.
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      const recipientLabel = `${mailable.length} customer${
-        mailable.length === 1 ? "" : "s"
-      }`;
-      message.success(
-        promotion
-          ? `Promotion "${
-              promotion.code?.toUpperCase() || promotion.name
-            }" sent to ${recipientLabel}.`
-          : `Email sent to ${recipientLabel}.`,
+      // Real per-recipient send via EmailJS using the chosen template; the
+      // selected promotion's code + percentage ride along on each email.
+      const results = await Promise.allSettled(
+        mailable.map((cart) =>
+          sendRecoveryEmail(cart, templateId, {
+            code: promotion?.code,
+            percent: promotion ? promotion.discountValue : undefined,
+          }),
+        ),
       );
-      onSent?.();
-      resetAndClose();
+      const sent = results.filter((r) => r.status === "fulfilled").length;
+      const failed = results.length - sent;
+
+      if (sent > 0) {
+        const recipientLabel = `${sent} customer${sent === 1 ? "" : "s"}`;
+        message.success(
+          promotion
+            ? `Promotion "${
+                promotion.code?.toUpperCase() || promotion.name
+              }" sent to ${recipientLabel}${failed ? `, ${failed} failed` : ""}.`
+            : `Email sent to ${recipientLabel}${failed ? `, ${failed} failed` : ""}.`,
+        );
+        onSent?.();
+        resetAndClose();
+      } else {
+        message.error("Failed to send the promotion email. Please try again.");
+      }
     } catch {
       message.error("Failed to send the promotion email. Please try again.");
     } finally {
@@ -207,18 +230,6 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
         if (!start && !end) return "—";
         return `${start || "—"} – ${end || "—"}`;
       },
-    },
-    {
-      title: "Status",
-      dataIndex: "active",
-      key: "active",
-      align: "center",
-      render: (active: boolean) =>
-        active ? (
-          <Tag color="green">Active</Tag>
-        ) : (
-          <Tag color="default">Inactive</Tag>
-        ),
     },
   ];
 
@@ -304,9 +315,30 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
           columns={recipientColumns}
           dataSource={recipients}
           pagination={false}
-          scroll={{ y: 260 }}
+          scroll={{ y: 160 }}
           style={{ marginTop: 8 }}
         />
+      </div>
+
+      <div>
+        <Divider titlePlacement="left" style={{ marginTop: 0 }}>
+          Email Template
+        </Divider>
+        <Radio.Group
+          value={templateId}
+          onChange={(e) => setTemplateId(e.target.value)}
+        >
+          <Space orientation="vertical">
+            {templates.map((template) => (
+              <Radio key={template.id} value={template.id}>
+                {template.name}{" "}
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  ({template.id})
+                </Text>
+              </Radio>
+            ))}
+          </Space>
+        </Radio.Group>
       </div>
     </Space>
   );
@@ -315,7 +347,6 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
     current === 0 ? (
       <Space>
         <Button onClick={resetAndClose}>Cancel</Button>
-        <Button onClick={skipToReview}>Skip &amp; Send Directly</Button>
         <Button type="primary" onClick={goToReview}>
           Next
         </Button>
@@ -330,7 +361,8 @@ const SendPromotionModal: React.FC<SendPromotionModalProps> = ({
           disabled={mailable.length === 0}
           onClick={handleSend}
         >
-          Send to {mailable.length} customer{mailable.length === 1 ? "" : "s"}
+          Send Mail to {mailable.length} customer
+          {mailable.length === 1 ? "" : "s"}
         </Button>
       </Space>
     );

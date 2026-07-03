@@ -13,17 +13,7 @@ import {
   App as AntdApp,
   Divider,
 } from "antd";
-import type { MenuProps } from "antd";
-import {
-  MailOutlined,
-  TagOutlined,
-  CheckCircleOutlined,
-  DeleteOutlined,
-  ExportOutlined,
-  BellOutlined,
-  FileTextOutlined,
-  FilePdfOutlined,
-} from "@ant-design/icons";
+import { MailOutlined, RobotOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import {
   useLocation,
@@ -45,11 +35,9 @@ import {
   STATUS_LABELS,
 } from "./cart.utils";
 import noImage from "../../assets/no-image.png";
-import { sendRecoveryEmail } from "../../services/recoveryEmailService";
-import {
-  exportCartToCsv,
-  exportCartToPdf,
-} from "../../services/cartExportService";
+import AskAiSuggestionModal from "../../components/common/AskAi/AskAiSuggestionModal";
+import SendPromotionModal from "./SendPromotionModal";
+import { ABANDONED_CART_TEMPLATE_ID } from "../../services/emailTemplates";
 
 // ---- Loading skeletons that mirror the real page layout ----
 
@@ -168,10 +156,8 @@ const ManageCart: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { message } = AntdApp.useApp();
-  const [sendingEmail, setSendingEmail] = React.useState(false);
-  // Controlled open state for the Export dropdown: the uncontrolled trigger
-  // can get stuck after the menu is dismissed without picking an option.
-  const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
+  const [sendModalOpen, setSendModalOpen] = React.useState(false);
+  const [askAiOpen, setAskAiOpen] = React.useState(false);
 
   // userId source (see CartList.openManage): the ?userId query param lets a
   // direct navigation / refresh re-run the portal + user chain on its own.
@@ -288,16 +274,26 @@ const ManageCart: React.FC = () => {
       key: "image",
       width: 90,
       align: "center",
-      render: (value?: string) => (
-        <Image
-          src={value || noImage}
-          alt=""
-          width={48}
-          height={48}
-          style={{ objectFit: "contain" }}
-          preview={false}
-        />
-      ),
+      render: (value?: string) =>
+        value ? (
+          <Image
+            src={value}
+            alt=""
+            width={48}
+            height={48}
+            preview={false}
+            style={{ objectFit: "contain" }}
+          />
+        ) : (
+          <Image
+            src={noImage}
+            alt=""
+            width={48}
+            height={48}
+            preview={false}
+            style={{ objectFit: "contain" }}
+          />
+        ),
     },
     { title: "SKU", dataIndex: "sku", key: "sku" },
     { title: "Product", dataIndex: "name", key: "name" },
@@ -323,90 +319,15 @@ const ManageCart: React.FC = () => {
     },
   ];
 
-  const handleSendRecoveryEmail = async () => {
-    setSendingEmail(true);
-    try {
-      await sendRecoveryEmail(cart);
-      message.success(`Recovery email sent to ${cart.email}`);
-    } catch (error) {
-      message.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to send recovery email",
-      );
-    } finally {
-      setSendingEmail(false);
-    }
-  };
-
-  const exportMenuItems: MenuProps["items"] = [
-    { key: "csv", label: "Export as CSV", icon: <FileTextOutlined /> },
-    { key: "pdf", label: "Export as PDF", icon: <FilePdfOutlined /> },
-  ];
-
-  // Export the same data the page shows: fetched items when available,
-  // otherwise the items carried on the cart record.
-  const handleExport: MenuProps["onClick"] = async ({ key }) => {
-    setExportMenuOpen(false);
-    const exportItems = items.length ? items : cart.items;
-    try {
-      if (key === "csv") {
-        exportCartToCsv(cart, exportItems);
-      } else {
-        await exportCartToPdf(cart, exportItems);
-      }
-      message.success(`Cart exported as ${key.toUpperCase()}`);
-    } catch {
-      message.error("Failed to export cart. Please try again.");
-    }
-  };
-
   const featureButtons = (
     <Space wrap>
       <Button
         type="primary"
         icon={<MailOutlined />}
-        loading={sendingEmail}
-        onClick={handleSendRecoveryEmail}
+        onClick={() => setSendModalOpen(true)}
       >
-        Send Recovery Email
+        Send Mail
       </Button>
-      {/* <Button
-        icon={<BellOutlined />}
-        onClick={() => message.success("Reminder scheduled")}
-      >
-        Schedule Reminder
-      </Button>
-      <Button
-        icon={<TagOutlined />}
-        onClick={() => message.info("Discount code DISCOUNT10 applied to cart")}
-      >
-        Apply Discount
-      </Button>
-      <Button
-        icon={<CheckCircleOutlined />}
-        onClick={() => message.success("Cart marked as recovered")}
-      >
-        Mark Recovered
-      </Button> */}
-      <Dropdown
-        menu={{ items: exportMenuItems, onClick: handleExport }}
-        trigger={["click"]}
-        open={exportMenuOpen}
-        onOpenChange={(open) => setExportMenuOpen(open)}
-      >
-        <Button icon={<ExportOutlined />}>Export</Button>
-      </Dropdown>
-      {/* <Button
-        danger
-        icon={<DeleteOutlined />}
-        onClick={() => {
-          message.success("Cart deleted");
-          handleBack();
-        }}
-      >
-        Delete Cart
-      </Button> */}
     </Space>
   );
 
@@ -509,7 +430,26 @@ const ManageCart: React.FC = () => {
             }}
           />
         </div>
+
+        <Button icon={<RobotOutlined />} onClick={() => setAskAiOpen(true)}>
+          Ask AI for coupon/promotion suggestions
+        </Button>
       </Space>
+
+      <AskAiSuggestionModal
+        open={askAiOpen}
+        carts={[cart]}
+        onClose={() => setAskAiOpen(false)}
+      />
+
+      {/* Detail-page send: this single cart, restricted to the Abandoned Cart
+          template (the list page uses the Welcome template instead). */}
+      <SendPromotionModal
+        open={sendModalOpen}
+        recipients={[cart]}
+        allowedTemplateIds={[ABANDONED_CART_TEMPLATE_ID]}
+        onClose={() => setSendModalOpen(false)}
+      />
     </ActionCard>
   );
 };

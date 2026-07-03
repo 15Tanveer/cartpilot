@@ -12,11 +12,15 @@ import "./index.css";
 window.addEventListener("error", (event) => {
   const errorName =
     event.error?.name ?? event.message?.match(/^(\w*Error):/)?.[1];
-  const errorMessage = event.message || event.error?.message || "";
 
-  const isCrossOriginSecurityError =
-    errorName === "SecurityError" &&
-    /removeEventListener|cross-origin frame/i.test(errorMessage);
+  // Any SecurityError thrown while this app runs inside a cross-origin iframe is
+  // a browser sandbox artifact (e.g. Ant Design's rc-image tearing down its
+  // window listeners on navigation), not an app bug. Browsers word these
+  // messages differently across versions, so match on the SecurityError name
+  // alone rather than a specific message. Left unsuppressed, React's own window
+  // error handler sees it and unmounts the tree, blanking/breaking the page —
+  // which is exactly what happened when navigating Back from the cart detail page.
+  const isCrossOriginSecurityError = errorName === "SecurityError";
 
   if (isCrossOriginSecurityError) {
     // preventDefault suppresses the browser console error.

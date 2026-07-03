@@ -59,6 +59,43 @@ const resolveDiscountType = (raw: IPromotionApiRecord): string => {
   return "";
 };
 
+/** How far a promotion's discount may sit from the target % and still match. */
+const PROMOTION_MATCH_TOLERANCE = 2;
+
+/**
+ * Finds the promotion that matches a target discount percentage, so an
+ * AI-suggested tier (e.g. 10%) can be turned into a real promotion + promo code.
+ * Prefers an exact discount match, then the nearest one WITHIN a small tolerance;
+ * beyond that returns undefined rather than snapping to a misleading code (e.g.
+ * mapping a 5% tier onto a 30%-off promotion). Active promotions win ties.
+ */
+export const findPromotionForPercent = (
+  promotions: IPromotion[],
+  percent: number,
+): IPromotion | undefined => {
+  const pool = promotions.filter((p) => p.code);
+  if (pool.length === 0) return undefined;
+
+  // Prefer an exact discount match, favouring an active promotion.
+  const exactMatches = pool.filter(
+    (p) => Math.round(p.discountValue) === Math.round(percent),
+  );
+  if (exactMatches.length > 0) {
+    return exactMatches.find((p) => p.active) || exactMatches[0];
+  }
+
+  // Otherwise the nearest promotion, but only if it's within tolerance.
+  const nearest = pool.reduce((best, current) =>
+    Math.abs(current.discountValue - percent) <
+    Math.abs(best.discountValue - percent)
+      ? current
+      : best,
+  );
+  return Math.abs(nearest.discountValue - percent) <= PROMOTION_MATCH_TOLERANCE
+    ? nearest
+    : undefined;
+};
+
 /** Maps a raw /Promotion/List record onto the UI's IPromotion shape. */
 export const mapApiPromotionToIPromotion = (
   raw: IPromotionApiRecord,
