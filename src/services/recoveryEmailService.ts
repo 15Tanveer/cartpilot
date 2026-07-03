@@ -28,8 +28,8 @@ const STORE = {
   discountCode: "DISCOUNT10",
 };
 
-/** Storefront the Welcome email's CTA / shop link points at. */
-const WELCOME_SHOP_URL = "https://webstore-gswr-np.znodecorp.com/";
+/** Storefront checkout the Welcome email's CTA / shop link points at. */
+const WELCOME_SHOP_URL = "https://webstore-gswr-np.znodecorp.com/checkout";
 /** Support address shown in the Welcome email footer. */
 const WELCOME_SUPPORT_EMAIL = "support@amla.io";
 

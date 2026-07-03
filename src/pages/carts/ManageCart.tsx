@@ -1,19 +1,25 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from "react";
 import {
   Table,
   Tag,
-  Descriptions,
   Space,
   Button,
-  Dropdown,
   Empty,
   Image,
   Skeleton,
+  Avatar,
+  Typography,
   App as AntdApp,
   Divider,
 } from "antd";
-import { MailOutlined, RobotOutlined } from "@ant-design/icons";
+import {
+  MailOutlined,
+  RobotOutlined,
+  UserOutlined,
+  ShoppingCartOutlined,
+  DollarOutlined,
+  ClockCircleOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import {
   useLocation,
@@ -31,36 +37,26 @@ import {
   formatCartDate,
   formatCurrency,
   mapApiItemToICartItem,
-  STATUS_COLORS,
-  STATUS_LABELS,
 } from "./cart.utils";
+import { StatTile, StatTileSkeleton, avatarColor, cartAgeTone } from "./cartVisuals";
 import noImage from "../../assets/no-image.png";
 import AskAiSuggestionModal from "../../components/common/AskAi/AskAiSuggestionModal";
 import SendPromotionModal from "./SendPromotionModal";
 import { ABANDONED_CART_TEMPLATE_ID } from "../../services/emailTemplates";
 
+const { Text } = Typography;
+
 // ---- Loading skeletons that mirror the real page layout ----
 
-const SUMMARY_SKELETON_LABELS = [
-  "Cart Number",
-  "User ID",
-  "Email",
-  // "Status",
-  "Last Modified",
-  "Items",
-  "Cart Total",
-];
-
-/** Shimmer for the cart summary: the real bordered Descriptions grid with
- *  the actual labels, but shimmering values. */
+/** Shimmer for the cart summary: the same tile row as the real header
+ *  (customer card + stat tiles), shimmering while data loads. */
 const CartSummarySkeleton: React.FC = () => (
-  <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
-    {SUMMARY_SKELETON_LABELS.map((label) => (
-      <Descriptions.Item key={label} label={label}>
-        <Skeleton.Input active size="small" style={{ width: 120, minWidth: 80 }} />
-      </Descriptions.Item>
-    ))}
-  </Descriptions>
+  <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+    <StatTileSkeleton />
+    <StatTileSkeleton />
+    <StatTileSkeleton />
+    <StatTileSkeleton />
+  </div>
 );
 
 /** Shimmer for the action buttons row (widths roughly match the real buttons). */
@@ -202,8 +198,7 @@ const ManageCart: React.FC = () => {
           return;
         }
         setUserDetail(response.User);
-      } catch (error) {
-        // console.error("Failed to load user details:", error);
+      } catch {
         message.error("Failed to load user details. Please try again.");
         setItemsResolved(true);
       }
@@ -267,6 +262,9 @@ const ManageCart: React.FC = () => {
     );
   }
 
+  const customerName = cart.userName?.trim() || "";
+  const ageTone = cartAgeTone(cart.lastModifiedDate);
+
   const itemColumns: ColumnsType<ICartItem> = [
     {
       title: "Image",
@@ -295,13 +293,31 @@ const ManageCart: React.FC = () => {
           />
         ),
     },
-    { title: "SKU", dataIndex: "sku", key: "sku" },
-    { title: "Product", dataIndex: "name", key: "name" },
+    {
+      title: "SKU",
+      dataIndex: "sku",
+      key: "sku",
+      render: (value: string) => <Text type="secondary">{value || "—"}</Text>,
+    },
+    {
+      title: "Product",
+      dataIndex: "name",
+      key: "name",
+      render: (value: string) => (
+        <span style={{ fontWeight: 600 }}>{value}</span>
+      ),
+    },
     {
       title: "Qty",
       dataIndex: "quantity",
       key: "quantity",
       align: "center",
+      render: (value: number) => (
+        <Space size={4}>
+          <ShoppingCartOutlined style={{ color: "#8c8c8c" }} />
+          <span>{value}</span>
+        </Space>
+      ),
     },
     {
       title: "Unit Price",
@@ -314,8 +330,11 @@ const ManageCart: React.FC = () => {
       title: "Line Total",
       key: "lineTotal",
       align: "right",
-      render: (_, record) =>
-        formatCurrency(record.unitPrice * record.quantity, cart.currency),
+      render: (_, record) => (
+        <Text strong style={{ color: "#36882f", fontSize: 14 }}>
+          {formatCurrency(record.unitPrice * record.quantity, cart.currency)}
+        </Text>
+      ),
     },
   ];
 
@@ -339,66 +358,108 @@ const ManageCart: React.FC = () => {
       // saveBtnText="Close"
     >
       <Space orientation="vertical" style={{ width: "100%" }} size="large">
-        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
-          <Descriptions.Item label="Cart Number">
-            {cart.cartNumber}
-          </Descriptions.Item>
-          {/* <Descriptions.Item label="User Name">
-            {cart.userName}
-          </Descriptions.Item> */}
-          <Descriptions.Item label="User ID">{cart.userId}</Descriptions.Item>
-          <Descriptions.Item label="Email">{cart.email}</Descriptions.Item>
-          {/* <Descriptions.Item label="Status">
-            <Tag color={STATUS_COLORS[cart.status]}>
-              {STATUS_LABELS[cart.status]}
-            </Tag>
-          </Descriptions.Item> */}
-          <Descriptions.Item label="Last Modified">
-            {formatCartDate(cart.lastModifiedDate)}
-          </Descriptions.Item>
-          <Descriptions.Item label="Items">{cart.itemCount}</Descriptions.Item>
-          <Descriptions.Item label="Cart Total">
-            {formatCurrency(cart.cartTotal, cart.currency)}
-          </Descriptions.Item>
-        </Descriptions>
-
-        {/* {(userDetail || loadingUser) && (
-          <div>
-            <Divider titlePlacement="left">Customer Account</Divider>
-            {loadingUser && !userDetail ? (
-              <Spin />
-            ) : userDetail ? (
-              <Descriptions
-                bordered
-                column={{ xs: 1, sm: 2, md: 3 }}
-                size="small"
-              >
-                <Descriptions.Item label="Account User ID">
-                  {userDetail.UserId}
-                </Descriptions.Item>
-                <Descriptions.Item label="Name">
-                  {[userDetail.FirstName, userDetail.LastName]
-                    .filter(Boolean)
-                    .join(" ") || "-"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Login / Username">
-                  {userDetail.UserName || "-"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Account Email">
-                  {userDetail.Email || "-"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Phone">
-                  {userDetail.PhoneNumber || "-"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Account Status">
-                  <Tag color={userDetail.IsActive ? "green" : "red"}>
-                    {userDetail.IsActive ? "Active" : "Inactive"}
-                  </Tag>
-                </Descriptions.Item>
-              </Descriptions>
-            ) : null}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+          <div
+            style={{
+              flex: "1.5 1 240px",
+              minWidth: 220,
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              padding: "16px 18px",
+              borderRadius: 10,
+              background: "#ffffff",
+              border: "1px solid #f0f0f0",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+            }}
+          >
+            <Avatar
+              size={44}
+              style={{
+                backgroundColor: customerName
+                  ? avatarColor(customerName)
+                  : "#bfbfbf",
+                flexShrink: 0,
+              }}
+              icon={!customerName ? <UserOutlined /> : undefined}
+            >
+              {customerName ? customerName.charAt(0).toUpperCase() : undefined}
+            </Avatar>
+            <div style={{ lineHeight: 1.4, minWidth: 0 }}>
+              <div style={{ fontWeight: 600, fontSize: 15 }}>
+                {customerName || "Guest User"}
+              </div>
+              <Text type="secondary" style={{ fontSize: 12, display: "block" }}>
+                {cart.email?.trim() || "No email on file"}
+              </Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                ID {cart.userId || "—"}
+              </Text>
+            </div>
           </div>
-        )} */}
+          <StatTile
+            label="Items in cart"
+            hint="Items in cart"
+            value={String(cart.itemCount)}
+            icon={<ShoppingCartOutlined />}
+            accent="#5db043"
+            tint="#e0ffd1"
+          />
+          <StatTile
+            label="Cart total"
+            hint="Cart total"
+            value={formatCurrency(cart.cartTotal, cart.currency)}
+            icon={<DollarOutlined />}
+            accent="#1890ff"
+            tint="#e6f7ff"
+          />
+          <div
+            style={{
+              flex: "1 1 180px",
+              minWidth: 160,
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              padding: "16px 18px",
+              borderRadius: 10,
+              background: "#ffffff",
+              border: "1px solid #f0f0f0",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#fff7e6",
+                color: "#fa8c16",
+                fontSize: 20,
+                flexShrink: 0,
+              }}
+            >
+              <ClockCircleOutlined />
+            </div>
+            <div style={{ lineHeight: 1.4, minWidth: 0 }}>
+              <Tag
+                color={ageTone.color}
+                icon={<ClockCircleOutlined />}
+                style={{ marginInlineEnd: 0 }}
+              >
+                {ageTone.label}
+              </Tag>
+              <Text
+                type="secondary"
+                style={{ fontSize: 12, display: "block", marginTop: 4 }}
+              >
+                Last modified {formatCartDate(cart.lastModifiedDate)}
+              </Text>
+            </div>
+          </div>
+        </div>
 
         <div>
           <Divider titlePlacement="left">Actions</Divider>
@@ -423,7 +484,9 @@ const ManageCart: React.FC = () => {
                     <strong>Total</strong>
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={5} align="right">
-                    <strong>{formatCurrency(total, cart.currency)}</strong>
+                    <Text strong style={{ color: "#36882f", fontSize: 14 }}>
+                      {formatCurrency(total, cart.currency)}
+                    </Text>
                   </Table.Summary.Cell>
                 </Table.Summary.Row>
               );
