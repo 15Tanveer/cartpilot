@@ -19,6 +19,7 @@ import {
   DeleteOutlined,
   ExportOutlined,
   BellOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -42,6 +43,7 @@ import {
 } from "./cart.utils";
 import noImage from "../../assets/no-image.png";
 import { sendRecoveryEmail } from "../../services/recoveryEmailService";
+import AskAiSuggestionModal from "../../components/common/AskAi/AskAiSuggestionModal";
 
 // ---- Loading skeletons that mirror the real page layout ----
 
@@ -161,6 +163,7 @@ const ManageCart: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { message } = AntdApp.useApp();
   const [sendingEmail, setSendingEmail] = React.useState(false);
+  const [askAiOpen, setAskAiOpen] = React.useState(false);
 
   // userId source (see CartList.openManage): the ?userId query param lets a
   // direct navigation / refresh re-run the portal + user chain on its own.
@@ -482,7 +485,17 @@ const ManageCart: React.FC = () => {
             }}
           />
         </div>
+
+        <Button icon={<RobotOutlined />} onClick={() => setAskAiOpen(true)}>
+          Ask AI for coupon/promotion suggestions
+        </Button>
       </Space>
+
+      <AskAiSuggestionModal
+        open={askAiOpen}
+        carts={[cart]}
+        onClose={() => setAskAiOpen(false)}
+      />
     </ActionCard>
   );
 };

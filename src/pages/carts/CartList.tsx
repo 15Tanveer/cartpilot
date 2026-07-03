@@ -22,6 +22,7 @@ import {
   DollarOutlined,
   ClockCircleOutlined,
   RiseOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { TableRowSelection } from "antd/es/table/interface";
@@ -44,10 +45,13 @@ import {
 import FilterDialog from "./FilterDialog";
 import SendPromotionModal from "./SendPromotionModal";
 import { IFilterCondition, applyCartFilters } from "./cart.filters";
+import AskAiSuggestionModal from "../../components/common/AskAi/AskAiSuggestionModal";
+import SmartAiSuggestionsModal from "../../components/common/AskAi/SmartAiSuggestionsModal";
+import SmartAiFloatButton from "../../components/common/AskAi/SmartAiFloatButton";
 
 const { Text } = Typography;
 
-const DEFAULT_PAGE_SIZE = 50;
+const DEFAULT_PAGE_SIZE = 100;
 const PAGE_SIZE_OPTIONS = ["50", "100", "200", "500"];
 
 // A cart is "stale" (needs attention) once it has been idle beyond this.
@@ -263,6 +267,8 @@ const CartList: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [selectedCarts, setSelectedCarts] = useState<ICart[]>([]);
   const [promotionOpen, setPromotionOpen] = useState(false);
+  const [askAiOpen, setAskAiOpen] = useState(false);
+  const [smartAiOpen, setSmartAiOpen] = useState(false);
   // Id of the cart whose user detail is currently being fetched (per-row spinner).
   const [managingId, setManagingId] = useState<string | null>(null);
 
@@ -625,6 +631,13 @@ const CartList: React.FC = () => {
             }}
           />
         )}
+
+        {!loading && visibleCarts.length > 0 && (
+          <Button icon={<RobotOutlined />} onClick={() => setAskAiOpen(true)}>
+            Ask AI for coupon/promotion suggestions
+            {selectedRowKeys.length > 0 ? ` (${selectedRowKeys.length} selected)` : ""}
+          </Button>
+        )}
       </Space>
 
       <FilterDialog
@@ -639,6 +652,27 @@ const CartList: React.FC = () => {
         recipients={selectedCarts}
         onClose={() => setPromotionOpen(false)}
         onSent={clearSelection}
+      />
+
+      <AskAiSuggestionModal
+        open={askAiOpen}
+        // Use the selected carts if any are checked, otherwise cap to a small
+        // batch from the current page so the AI request stays cheap.
+        carts={selectedCarts.length > 0 ? selectedCarts : visibleCarts.slice(0, 10)}
+        onClose={() => setAskAiOpen(false)}
+      />
+
+      {/* Floating action: studies Cart Total + Cart Age across all loaded carts
+          and proposes batch promotions + inverse-tiered per-cart discounts. */}
+      <SmartAiFloatButton
+        visible={!loading && visibleCarts.length > 0}
+        onClick={() => setSmartAiOpen(true)}
+      />
+
+      <SmartAiSuggestionsModal
+        open={smartAiOpen}
+        carts={visibleCarts}
+        onClose={() => setSmartAiOpen(false)}
       />
     </ActionCard>
   );
