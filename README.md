@@ -1,46 +1,71 @@
-# Getting Started with Create React App
+# CartPilot
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+CartPilot is a React + TypeScript application for managing abandoned-cart recovery workflows and customer checkout recovery.
 
-## Available Scripts
+The application separates the internal cart-management experience from the public recovery checkout flow, with route-level code splitting and an Ant Design based interface.
 
-In the project directory, you can run:
+## What it includes
 
-### `npm start`
+- Abandoned-cart listing and management flows
+- Public checkout route for customers returning from recovery communication
+- Route-based lazy loading for application pages
+- Redux Toolkit state management
+- API integration with Axios
+- Ant Design component system and theming
+- EmailJS integration
+- Google Generative AI integration
+- DOM sanitisation with DOMPurify
+- TypeScript, ESLint, Prettier, Husky and spell-check tooling
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Tech stack
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- React 19
+- TypeScript
+- React Router
+- Redux Toolkit
+- Ant Design
+- Axios
+- Sass
+- EmailJS
+- Google Generative AI SDK
 
-### `npm test`
+## Project structure
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```text
+src/
+├── api/          # API layer
+├── components/   # Shared UI components
+├── config/       # Routes and application configuration
+├── constants/    # Shared constants
+├── hooks/        # Reusable hooks
+├── interfaces/   # TypeScript interfaces
+├── layouts/      # Application layouts
+├── pages/        # Route-level screens
+└── store/        # Application state
+```
 
-### `npm run build`
+## Getting started
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm install
+npm start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The development server runs on `http://localhost:3000` by default.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Available scripts
 
-### `npm run eject`
+```bash
+npm start       # Start the development server
+npm run build   # Create a production build
+npm test        # Run the test suite
+npm run lint    # Run ESLint
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Engineering notes
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The application keeps customer-facing checkout separate from the authenticated management layout and lazy-loads route-level screens to reduce the initial application bundle. Supporting project documentation, including colour-management guidance, lives alongside the source.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Status
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+Active development / portfolio project.
